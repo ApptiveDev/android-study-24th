@@ -72,6 +72,7 @@ fun SnsFeedScreen() {
         )
     )
 
+ feat/week2
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -163,5 +164,12 @@ fun SnsFeedScreen() {
                 }
             }
         }
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    AndroidstudyTheme {
+        Greeting("ELGHANDOUR 202555345")
+ feat/week2
     }
 }
