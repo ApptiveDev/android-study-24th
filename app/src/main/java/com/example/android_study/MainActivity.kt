@@ -180,7 +180,7 @@ fun GreetingPreview() {
     AndroidstudyTheme {
         FeedCard(
             PostData(
-                userName = "charlie_jh04,
+                userName = "charlie_jh04",
                 location = "Pusan National University",
                 caption = "스터디 과제 중!",
                 timeAgo = "3시간 전",
