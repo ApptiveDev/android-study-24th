@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.android_study.ui.theme.AndroidstudyTheme
 
+data class PostData(
+    val userName: String,
+    val location: String,
+    val caption: String,
+    val timeAgo: String,
+    val likes: Int
+)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,13 +49,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             AndroidstudyTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    val post = PostData(
+                        userName = "charles_jh04",
+                        location = "Pusan National University",
+                        caption = "스터디 과제 중!",
+                        timeAgo = "3시간 전",
+                        likes = 128
+                    )
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding),
-                        contentAlignment = Alignment.Center
+                            .padding(innerPadding)
                     ) {
-                        ProfileCard(name="안진형")
+                        FeedCard(post)
                     }
                 }
             }
@@ -52,39 +70,107 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProfileCard(name: String) {
-    Row(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(1f)
-            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(12.dp))
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 1. 프로필 아이콘
-        Icon(
-            imageVector = Icons.Default.AccountCircle,
-            contentDescription = null,
-            modifier = Modifier.size(50.dp),
-            tint = Color.Gray
+fun FeedCard(post: PostData) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        // 프로필 행
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 아바타
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "avatar",
+                modifier = Modifier.size(38.dp),
+                tint = Color.Gray
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                Text(
+                    text = post.userName,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = post.location,
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        // 피드 이미지
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .background(Color(0xFFE0E0E0))
         )
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // 2. 이름과 설명
-        Column {
-            Text(
-                text = name,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+        // 기능 버튼 행
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.FavoriteBorder,
+                contentDescription = "좋아요",
+                modifier = Modifier.size(26.dp)
             )
-            Text(
-                text = "Pusan National University \nComputer Science & Engineering",
-                fontSize = 14.sp,
-                color = Color.DarkGray
+            Spacer(modifier = Modifier.width(14.dp))
+            Icon(
+                imageVector = Icons.Default.Email,
+                contentDescription = "댓글",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = "공유",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "저장",
+                modifier = Modifier.size(24.dp)
             )
         }
+
+        // 좋아요 수
+        Text(
+            text = "좋아요 ${post.likes}개",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 14.dp)
+        )
+
+        // 내용
+        Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) {
+            Text(
+                text = post.userName,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = post.caption,
+                fontSize = 14.sp
+            )
+        }
+
+        // 시간
+        Text(
+            text = post.timeAgo,
+            fontSize = 11.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
+        )
     }
 }
 
@@ -92,6 +178,15 @@ fun ProfileCard(name: String) {
 @Composable
 fun GreetingPreview() {
     AndroidstudyTheme {
-        ProfileCard("안진형")
+        FeedCard(
+            PostData(
+                userName = "charlie_jh04,
+                location = "Pusan National University",
+                caption = "스터디 과제 중!",
+                timeAgo = "3시간 전",
+                likes = 128
+            )
+        )
     }
 }
+
