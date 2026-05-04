@@ -131,16 +131,24 @@ fun HomeScreen(postList: List<PostData>) {
 
 @Composable
 fun SearchScreen() {
-    var keyword by remember { mutableStateSetOf("") }
+    var keyword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) { }
+    ) {
+        Text("검색 화면", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = keyword,
+            onValueChange = { keyword = it },
+            label = { Text("검색어 입력") },
+            modifier = Modifier.fillMaxWidth()
 
-
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("검색 결과: $keyword")
     }
 }
-
 @Composable
 fun ProfileScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -152,7 +160,6 @@ fun ProfileScreen() {
 fun SnsFeedScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    // ✅ @Composable 없이, ProfileScreen() 중복 호출 없이
     val postList = listOf(
         PostData("gxhyn_", R.drawable.profile, R.drawable.my_photo, 124, "#Apptive #Android"),
         PostData("gxhyn_", R.drawable.profile, R.drawable.ph, 89, "스터디 화이팅")
@@ -197,5 +204,22 @@ fun SnsFeedScreen() {
 fun SnsFeedScreenPreview() {
     MaterialTheme {
         SnsFeedScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "검색 화면")
+@Composable
+fun SearchScreenPreview() {
+    MaterialTheme {
+        SearchScreen()
+    }
+}
+
+
+@Preview(showBackground = true, name = "프로필 화면")
+@Composable
+fun ProfileScreenPreview() {
+    MaterialTheme {
+        ProfileScreen()
     }
 }
