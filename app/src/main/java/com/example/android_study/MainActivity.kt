@@ -136,6 +136,7 @@ fun HomeScreen() {
 @Composable
 fun FeedCard(post: PostData) {
     var liked by remember { mutableStateOf(false) }
+    var starred by remember { mutableStateOf(false) }
     val likeCount = if (liked) post.likes + 1 else post.likes
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -207,8 +208,11 @@ fun FeedCard(post: PostData) {
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 imageVector = Icons.Default.Star,
-                contentDescription = "저장",
-                modifier = Modifier.size(24.dp)
+                contentDescription = if (starred) "저장 취소" else "저장",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { starred = !starred },
+                tint = if (starred) Color(0xFFFFC107) else Color.Black
             )
         }
 
