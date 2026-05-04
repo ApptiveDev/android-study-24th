@@ -253,20 +253,20 @@ fun SearchScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("검색 화면", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("검색", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = keyword,
             onValueChange = { keyword = it },
-            label = { Text("검색어 입력") },
+            label = { Text("여기에 검색어를 입력하세요.") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("입력한 검색어: $keyword")
+        Text("$keyword에 대한 검색 결과:")
     }
 }
 
@@ -288,7 +288,7 @@ fun NotiScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { showDialog = true }) {
-            Text("알림 창 열기")
+            Text("알림 보기")
         }
     }
 
@@ -321,22 +321,22 @@ fun ProfileScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("마이페이지", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("내 프로필", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("여기는 마이페이지 탭입니다.")
+        Text("내 프로필 화면 추가 예정.")
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { liked = !liked }) {
-            Text(if (liked) "좋아요 취소" else "좋아요")
+        Button(onClick = { count++ }) {
+            Text("방문자 버튼")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { count++ }) {
-            Text("Count: $count")
+            Text("방문자 수: $count")
         }
     }
 }
