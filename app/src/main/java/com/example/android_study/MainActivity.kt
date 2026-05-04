@@ -266,7 +266,7 @@ fun SearchScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("$keyword에 대한 검색 결과:")
+        Text("검색 결과:")
     }
 }
 
@@ -300,11 +300,6 @@ fun NotiScreen() {
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
                     Text("확인")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("닫기")
                 }
             }
         )
