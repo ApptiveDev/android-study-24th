@@ -19,14 +19,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,7 +59,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SnsFeedScreen()
+            MainScreen()
         }
     }
 }
@@ -73,6 +82,56 @@ data class PostData(
 )
 
 @Composable
+fun MainScreen() {
+    var selectedTab by remember {mutableStateOf(0)}
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar{
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = {selectedTab = 0},
+                    icon = {Icon(Icons.Default.Home, contentDescription = null)},
+                    label = {Text("홈")}
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = {selectedTab = 1},
+                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    label = { Text("검색") }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = {selectedTab = 2},
+                    icon = { Icon(Icons.Default.MailOutline, contentDescription = null) },
+                    label = { Text("메시지") }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = {selectedTab = 3},
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    label = { Text("마이") }
+                )
+            }
+        }
+    ) {
+        innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            when (selectedTab) {
+                0 -> SnsFeedScreen()
+                1 -> SearchScreen()
+                2 -> MessageScreen()
+                3 -> ProfileScreen()
+            }
+        }
+    }
+}
+
+
+@Composable
 fun SnsFeedScreen() {
     //instance of story data class
     val stories = listOf(
@@ -80,6 +139,7 @@ fun SnsFeedScreen() {
         StoryData("user1", R.drawable.profile),
         StoryData("user2", R.drawable.profile),
         StoryData("user3", R.drawable.profile),
+        StoryData("user4", R.drawable.profile),
         StoryData("user4", R.drawable.profile),
     )
 
@@ -100,6 +160,7 @@ fun SnsFeedScreen() {
     ) {
         //stories bar
         StoriesBar(stories = stories)
+
         //divider
         Spacer(
             modifier = Modifier
@@ -309,6 +370,22 @@ fun StoryItem(story: StoryData) {
             color = Color.Black
         )
     }
+}
+
+@Composable
+fun SearchScreen() {
+    Text(text = "Search Screen")
+
+}
+
+@Composable
+fun MessageScreen() {
+    Text(text = "Message Screen")
+}
+
+@Composable
+fun ProfileScreen() {
+    Text(text = "Profile Screen")
 }
 
 @Preview(showBackground = true)
