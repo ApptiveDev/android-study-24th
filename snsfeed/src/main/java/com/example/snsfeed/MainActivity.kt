@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -37,6 +39,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,8 +54,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,182 +135,213 @@ fun MainScreen() {
     }
 }
 
-
 @Composable
 fun SnsFeedScreen() {
     //instance of story data class
-    val stories = listOf(
-        StoryData("Your Story", R.drawable.hellokitty, isMyStory = true),
-        StoryData("user1", R.drawable.profile),
-        StoryData("user2", R.drawable.profile),
-        StoryData("user3", R.drawable.profile),
-        StoryData("user4", R.drawable.profile),
-        StoryData("user4", R.drawable.profile),
-    )
+    val stories = remember {
+        listOf(
+            StoryData("Your Story", R.drawable.hellokitty, isMyStory = true),
+            StoryData("user1", R.drawable.profile),
+            StoryData("user2", R.drawable.profile),
+            StoryData("user3", R.drawable.profile),
+            StoryData("user4", R.drawable.profile),
+            StoryData("user5", R.drawable.profile),
+        )
+    }
 
     //instance of post data class
-    val post = PostData(
-        userName = "travel",
-        userProfileImage = R.drawable.profilepic,
-        postImage = R.drawable.gwangalli,
-        likeCount = 123,
-        caption = "광안리",
-        timeAgo = "2 hours ago"
+    val posts = listOf(
+        PostData(
+            userName = "travel",
+            userProfileImage = R.drawable.profilepic,
+            postImage = R.drawable.gwangalli,
+            likeCount = 123,
+            caption = "광안리",
+            timeAgo = "2 hours ago"
+        ),
+        PostData(
+            userName = "travel2",
+            userProfileImage = R.drawable.profilepic,
+            postImage = R.drawable.gwangalli,
+            likeCount = 123,
+            caption = "광안리",
+            timeAgo = "2 hours ago"
+        ),
     )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        //stories bar
-        StoriesBar(stories = stories)
-
-        //divider
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.LightGray)
-        )
-
-        //post section
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        )
-        {
-            //profile image
-            Image(
-                painter = painterResource(id = post.userProfileImage),
-                contentDescription = "Profile Image",
+        item {
+            //stories bar
+            StoriesBar(stories = stories)
+            //divider
+            Spacer(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-
-            //username
-            Text(
-                text = post.userName,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-
-            //see more icon
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "More Options",
-                modifier = Modifier.size(24.dp)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.LightGray)
             )
         }
-
-        //post image
-        Image(
-            painter = painterResource(id = post.postImage),
-            contentDescription = "Post Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .background(Color.LightGray),
-            contentScale = ContentScale.Crop
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            //like button
-            var isLiked by remember { mutableStateOf(false) }
-
-            IconButton(onClick = { isLiked = !isLiked }) {
-                Icon(
-                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = "Like",
-                    tint = if (isLiked) Color.Red else Color.Black,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            //comment icon
-            Icon(
-                painter = painterResource(id = drawable.ic_dialog_email),
-                contentDescription = "Comment",
-                modifier = Modifier.size(28.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            //share icon
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = "Share",
-                modifier = Modifier.size(26.dp)
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            //bookmarks icon
-            Icon(
-                painter = painterResource(id = drawable.ic_menu_save),
-                contentDescription = "Bookmark",
-                modifier = Modifier.size(26.dp)
-            )
+        items(posts) { post ->
+            PostCard(post = post)
         }
-
-        //likes
-        Text(
-            text = "${post.likeCount} likes",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-        )
-
-        //caption
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = post.userName,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = post.caption,
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
-        }
-
-        //upload time
-        Text(
-            text = post.timeAgo,
-            fontSize = 12.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-        )
     }
 }
 
 @Composable
+fun PostCard(post: PostData) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        PostHeader(post)
+        PostImage(post)
+        PostButtons()
+        PostContent(post)
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun PostHeader(post: PostData) {
+    //post section
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    )
+    {
+        //profile image
+        Image(
+            painter = painterResource(id = post.userProfileImage),
+            contentDescription = "Profile Image",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.Gray),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+
+        //username
+        Text(
+            text = post.userName,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+        )
+
+        //see more icon
+        Icon(
+            imageVector = Icons.Default.MoreVert,
+            contentDescription = "More Options",
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+@Composable
+fun PostImage(post: PostData) {    //post image
+    Image(
+        painter = painterResource(id = post.postImage),
+        contentDescription = "Post Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp)
+            .background(Color.LightGray),
+        contentScale = ContentScale.Crop
+    )
+}
+@Composable
+fun PostButtons() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //like button
+        var isLiked by remember { mutableStateOf(false) }
+        IconButton(onClick = { isLiked = !isLiked }) {
+            Icon(
+                imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = "Like",
+                tint = if (isLiked) Color.Red else Color.Black,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+
+        //comment icon
+        Icon(
+            painter = painterResource(id = drawable.ic_dialog_email),
+            contentDescription = "Comment",
+            modifier = Modifier.size(28.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+
+        //share icon
+        Icon(
+            imageVector = Icons.Default.Send,
+            contentDescription = "Share",
+            modifier = Modifier.size(26.dp)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        //bookmarks icon
+        Icon(
+            painter = painterResource(id = drawable.ic_menu_save),
+            contentDescription = "Bookmark",
+            modifier = Modifier.size(26.dp)
+        )
+    }
+}
+@Composable
+fun PostContent(post: PostData) {
+    //likes text
+    Text(
+        text = "${post.likeCount} likes",
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    )
+    //caption
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = post.userName,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = post.caption,
+            fontSize = 14.sp,
+            lineHeight = 20.sp
+        )
+    }
+    //upload time
+    Text(
+        text = post.timeAgo,
+        fontSize = 12.sp,
+        color = Color.Gray,
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    )
+}
+
+@Composable
 fun StoriesBar(stories: List<StoryData>) {
-    Row(modifier = Modifier
+    LazyRow(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 12.dp, horizontal = 8.dp)
     ) {
-        stories.forEach { story ->
+        items(stories){ story ->
             StoryItem(story = story)
         }
     }
@@ -374,8 +410,35 @@ fun StoryItem(story: StoryData) {
 
 @Composable
 fun SearchScreen() {
-    Text(text = "Search Screen")
+    var keyword by remember {mutableStateOf("")}
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "검색 화면",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .background(Color.Magenta)
+                .fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = keyword,
+            onValueChange = {keyword = it},
+            label = {
+                Text("검색어 입력")
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("")
 
+
+}
 }
 
 @Composable
