@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SnsFeedScreen() {
+<<<<<<< HEAD
 
     val postList = listOf(
         PostData(
@@ -168,3 +169,124 @@ fun SnsFeedScreen() {
                 }
             }
         }
+=======
+
+    val postList = listOf(
+        PostData(
+            userName = "gxhyn_",
+            userProfileRes = R.drawable.profile,
+            postImageRes = R.drawable.my_photo,
+            likeCount = 124,
+            description = "#Apptive #Android"
+        ),
+        PostData(
+            userName = "gxhyn_",
+            userProfileRes = R.drawable.profile,
+            postImageRes = R.drawable.ph,
+            likeCount = 89,
+            description = "스터디 화이팅"
+        )
+    )
+
+ feat/week2
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(postList) { post ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp), // 상하 여백을 조금 줘서 카드 간격을 띄움
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = post.userProfileRes),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray),
+                            contentScale = ContentScale.Crop // 프로필 사진도 꽉 차게
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = post.userName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = null)
+                        }
+                    }
+
+                    // 메인 이미지
+                    Image(
+                        painter = painterResource(id = post.postImageRes),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .padding(horizontal = 12.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // 액션 버튼 영역
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Default.Favorite, contentDescription = null, tint = Color.Red)
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(Icons.Default.Share, contentDescription = null)
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                        }
+                    }
+
+                    // 텍스트 영역 (좋아요, 본문)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = "좋아요 ${post.likeCount}개",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = post.description,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp
+                        )
+                    }
+                }
+            }
+        }
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    AndroidstudyTheme {
+        Greeting("ELGHANDOUR 202555345")
+ feat/week2
+    }
+}
+>>>>>>> feat/week2
