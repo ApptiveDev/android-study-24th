@@ -283,7 +283,7 @@ fun NotiScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("알림 화면", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("알림", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -314,7 +314,7 @@ fun NotiScreen() {
 fun ProfileScreen() {
     var liked by remember { mutableStateOf(false) }
     var count by remember { mutableStateOf(0) }
-
+    var showDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -334,9 +334,27 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { count++ }) {
+        Button(onClick = { showDialog = true }) {
             Text("방문자 수: $count")
         }
+        
+        if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("방문자 수: $count") },
+            text = { Text("방문자 수를 초기화하시겠습니까?") },
+            confirmButton = {
+                TextButton(onClick = { count = 0; showDialog = false }) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("취소")
+                }
+            }
+        )
+    }
     }
 }
 
