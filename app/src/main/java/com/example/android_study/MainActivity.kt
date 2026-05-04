@@ -39,14 +39,21 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,7 +78,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
+val PointColor = Color(0xFFFF5722)
 // 스토리 데이터 클래스
 data class StoryData(
     val id: Int,
@@ -88,25 +95,13 @@ data class PostData(
 
 @Composable
 fun FeedUI(){
-    val stories = listOf(
-        StoryData(1, "jeong"),
-        StoryData(2, "woo"),
-        StoryData(3, "young"),
-        StoryData(4, "bong")
-    )
-
-    val posts = listOf(
-        PostData(1, "jeong", "Busan", "10m ago"),
-        PostData(2, "woo", "Seoul", "2h ago"),
-        PostData(3, "young", "Ulsan", "Yesterday"),
-        PostData(4, "bong", "Busan", "3 days ago")
-    )
+    var selectedTab by remember {mutableStateOf(0)}
     Scaffold(
         topBar = {//제일 위에 부분
             Row(
                 modifier= Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp,end = 16.dp, top = 40.dp, bottom = 10.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 40.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -125,9 +120,9 @@ fun FeedUI(){
                         .size(28.dp))
                     Box(
                         modifier = Modifier
-                            .offset(x=4.dp,y=(-2).dp)
+                            .offset(x = 4.dp, y = (-2).dp)
                             .size(16.dp)
-                            .background(Color(0xFFFF5722), CircleShape),
+                            .background(PointColor, CircleShape),
                         contentAlignment = Alignment.Center
                     ){
                         Text(text = "2",color = Color.White,fontSize=9.sp , fontWeight = FontWeight.Bold,modifier = Modifier.offset(y = (-5).dp))
@@ -135,243 +130,276 @@ fun FeedUI(){
                 }
             }
         },
+
         bottomBar = {//아래 홈,알림,좋아요,돋보기,프로필 부분
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ){
                 NavigationBarItem(
-                    selected = true,
-                    onClick = {},
-                    icon = {
-                        Icon(Icons.Default.Home, contentDescription = "Home",tint = Color(0xFFFF5722))
-                    }
+                    selected = selectedTab ==0,
+                    onClick = {selectedTab = 0},
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home")} ,
+                    colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Color.Transparent
+                            )
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifications") }
+                    selected = selectedTab == 1,
+                    onClick = {selectedTab = 1},
+                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifications") },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.Transparent
+                    )
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Activity") }
+                    selected = selectedTab == 2,
+                    onClick = {selectedTab = 2},
+                    icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "liked") },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color.Transparent
+                    )
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { },
+                    selected = selectedTab == 3,
+                    onClick = {selectedTab = 3},
                     icon = { Icon(Icons.Default.Search, contentDescription = "Search") }
                 )
                 NavigationBarItem(
-                    selected = false,
-                    onClick = { },
+                    selected = selectedTab == 4,
+                    onClick = {selectedTab = 4},
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") }
                 )
             }
         }
     ){ paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ){
-            item {Spacer(modifier = Modifier.height(16.dp))}
+        Box(modifier=Modifier.padding(paddingValues)){
+            when(selectedTab){
+              0 -> HomeScreen()
+              1 -> NotificationScreen()
+              2 -> LikedScreen()
+              3 -> SearchScreen()
+              4 -> ProfileScreen()
+            }
+        }
+    }
+}
 
-            item {//스토리 부분
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ){
-                    item {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(//내스토리
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { }
-                                    .size(65.dp)
-                                    .background(Color(0xFF1E1E1E), CircleShape)
-                                    .border(2.dp, Color.LightGray, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ){
-                                Icon(Icons.Default.Add, contentDescription = "Add Story", tint = Color.White )
-                            }
-                            Spacer(modifier=Modifier.height(8.dp))
-                            Text("Add Story",fontSize=12.sp,color=Color.DarkGray)
+@Composable
+fun HomeScreen() {
+    val stories = listOf(
+        StoryData(1, "jeong"),
+        StoryData(2, "woo"),
+        StoryData(3, "young"),
+        StoryData(4, "bong")
+    )
+
+    val posts = listOf(
+        PostData(1, "jeong", "Busan", "10m ago"),
+        PostData(2, "woo", "Seoul", "2h ago"),
+        PostData(3, "young", "Ulsan", "Yesterday"),
+        PostData(4, "bong", "Busan", "3 days ago")
+    )
+
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(vertical = 10.dp)
+            ) {
+                item {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { }
+                                .size(65.dp)
+                                .background(Color(0xFF1E1E1E), CircleShape)
+                                .border(2.dp, Color.LightGray, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add Story", tint = Color.White)
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Add Story", fontSize = 12.sp, color = Color.DarkGray)
                     }
-                    //다른사람들 스토리
-                    items(stories.size){index ->
-                        val story = stories[index]
-                        Column(horizontalAlignment = Alignment.CenterHorizontally){
+                }
+                items(stories.size) { index ->
+                    val story = stories[index]
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { }
+                                .size(65.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val stroke = Stroke(
+                                width = 4f,
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 10f), 0f)
+                            )
+                            Canvas(modifier = Modifier.matchParentSize()) {
+                                drawCircle(color = PointColor, style = stroke)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(55.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Gray)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(story.userName, fontSize = 12.sp, color = Color.DarkGray)
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(24.dp)) }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .height(50.dp)
+                    .background(PointColor, RoundedCornerShape(25.dp))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text("Recent", color = Color.White, fontSize = 14.sp)
+                    Text("Following", color = Color.White, fontSize = 14.sp)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable{}
+                            .background(Color.White, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                    ) {
+                        Text("Trendy", color = PointColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(24.dp)) }
+        //게시물 부분
+        items(posts.size) { index ->
+            val post = posts[index]
+            Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    //게시물 위에 프로필이랑 이름 쪽
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .clickable { }
-                                    .size(65.dp),
-                                contentAlignment = Alignment.Center
-                            ){
-                                val stroke = Stroke(
-                                    width = 4f,
-                                    pathEffect = PathEffect.dashPathEffect(
-                                        floatArrayOf(15f, 10f),
-                                        0f
-                                    )
-                                )
-                                Canvas(modifier=Modifier.matchParentSize()){
-                                    drawCircle(color = Color(0xFFFF5722),style=stroke)
-                                }
-                                Box(
-                                    modifier= Modifier
-                                        .size(55.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.Gray)
-                                )
+                                    .size(40.dp)
+                                    .border(1.dp, PointColor, CircleShape)
+                                    .padding(2.dp)
+                                    .background(Color.Gray)
+                            ) {
+                                Icon(Icons.Default.Person, "profile", tint = Color.White, modifier = Modifier.fillMaxSize())
                             }
-                            Spacer(modifier=Modifier.height(8.dp))
-                            Text(story.userName,fontSize=12.sp,color=Color.DarkGray)
-                        }
-                    }
-                }
-            }
-            item {Spacer(modifier=Modifier.height(24.dp))}
-            item {//recent, following, trendy 바
-                Box(
-                    modifier= Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .height(50.dp)
-                        .background(Color(0xFFFF5722),RoundedCornerShape(25.dp))
-                ){
-                    Row(
-                        modifier= Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .clickable { /* 클릭 시 동작할 코드 */ }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text("Recent", color = Color.White, fontSize = 14.sp)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .clickable { }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text("Following", color = Color.White, fontSize = 14.sp)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp)) // 클릭 효과가 버튼 모양에 맞게
-                                .clickable { /* 클릭 시 동작할 코드 */ }
-                                .background(Color.White, RoundedCornerShape(20.dp))
-                                .padding(horizontal = 20.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                "Trendy",
-                                color = Color(0xFFFF5722),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-            item {Spacer(modifier=Modifier.height(24.dp))}
-            //게시물 부분
-            items(posts.size){index ->
-                val post = posts[index]
-                Column(modifier = Modifier.padding(bottom=16.dp)){
-                    Card(
-                        modifier= Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal =16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ){
-                        Column{
-                            Row(//게시물 위 프로필, 지역, 시간 등 표시
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ){
-                                Box(
-                                    //게시한 사람 프로필
-                                    modifier= Modifier
-                                        .clip(CircleShape)
-                                        .clickable { }
-                                        .size(40.dp)
-                                        .border(1.dp,Color(0xFFFF5722),CircleShape)
-                                        .padding(2.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.Gray)
-
-                                ){
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = "Profile Picture",
-                                        tint = Color.White,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                                Spacer(modifier=Modifier.width(12.dp))
-
-                                Column(modifier = Modifier.weight(1f)){
-                                    Text(post.userName, fontWeight = FontWeight.Bold,fontSize=14.sp)
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("At ${post.location}, ", color = Color.Gray, fontSize = 12.sp)
-                                        Text(post.timeAgo, color = Color.LightGray, fontSize = 12.sp)
-                                    }
-                                }
-                                Icon(Icons.Default.Star, contentDescription="Bookmark", tint=Color.Gray,modifier= Modifier
-                                    .clip(CircleShape)
-                                    .clickable { }
-                                )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(post.userName, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("At ${post.location}, ${post.timeAgo}", color = Color.Gray, fontSize = 12.sp)
                             }
+                            Icon(Icons.Default.Star, "bookmark", tint = Color.Gray)
                         }
-                        Box(//사진,영상 부분
-                            modifier= Modifier
+                        //게시물 사진부분
+                        Box(
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .height(300.dp)
                                 .background(Color(0xFFFFCDD2))
-                        ){
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .clickable { }
-                                    .align(Alignment.Center)
-                                    .size(60.dp)
-                            )
-
+                        ) {
+                            Icon(Icons.Default.PlayArrow, "paly", tint = Color.White, modifier = Modifier.align(Alignment.Center).size(60.dp))
                         }
-                        Row(//하단 좋아요, ,댓글, 메시지부분
-                            modifier= Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp,vertical =12.dp),
+                        //좋아요랑 그런거
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ){
-                            Icon(Icons.Default.Favorite,contentDescription="Like",tint = Color.Gray,modifier=Modifier.clip(CircleShape).clickable { })
-                            Icon(Icons.Default.Search,contentDescription="Comment",tint = Color.Gray,modifier=Modifier.clip(CircleShape).clickable { })
-                            Icon(Icons.Default.Send,contentDescription="Share",tint = Color.Gray,modifier=Modifier.clip(CircleShape).clickable { })
-
+                        ) {
+                            Icon(Icons.Default.Favorite, "like", tint = Color.Gray)
+                            Icon(Icons.Default.Search, "search", tint = Color.Gray)
+                            Icon(Icons.Default.Send, "send", tint = Color.Gray)
                             Spacer(modifier = Modifier.weight(1f))
-
-                            Icon(Icons.Default.MoreVert,contentDescription="More",tint = Color.Gray,modifier=Modifier.clip(CircleShape).clickable { })
+                            Icon(Icons.Default.MoreVert, "option", tint = Color.Gray)
                         }
                     }
                 }
             }
-            item {Spacer(modifier=Modifier.height(16.dp))}
         }
     }
+}
+@Composable
+fun NotificationScreen(){
+
+}
+@Composable
+fun LikedScreen(){
+    var liked by remember{ mutableStateOf(false)}
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ){
+        Text("눌러봐라")
+
+        Spacer(modifier=Modifier.height(16.dp))
+
+        Button(
+            onClick={
+                liked = !liked
+            }
+        ){
+
+            Text(if(liked) "좋아요 취소" else "좋아요")
+        }
+
+    }
+}
+@Composable
+fun SearchScreen(){
+    var name by remember{mutableStateOf("")}
+    Column(
+        modifier=Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment=Alignment.CenterHorizontally,
+    ){
+        TextField(
+
+            value = name,
+            onValueChange = {name =it},
+            label = {Text("이름 입력")}
+        )
+        Spacer(modifier=Modifier.height(16.dp))
+        Text("입력한 검색어: $name")
+    }
+}
+@Composable
+fun ProfileScreen(){
 
 }
 
