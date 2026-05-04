@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
@@ -44,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -122,21 +126,46 @@ fun MainScreen() {
 
 @Composable
 fun HomeScreen() {
-    val post = PostData(
-        userName = "charles_jh04",
-        location = "Pusan National University",
-        caption = "스터디 과제 중!",
-        timeAgo = "3시간 전",
-        likes = 128
+    val posts = listOf(
+        PostData(
+            userName = "charles_jh04",
+            location = "Pusan National University",
+            caption = "스터디 과제 중!",
+            timeAgo = "3시간 전",
+            likes = 128
+        ),
+        PostData(
+            userName = "apptive_study",
+            location = "PBL2",
+            caption = "연습중",
+            timeAgo = "어제",
+            likes = 256
+        ),
+        PostData(
+            userName = "compose_dev",
+            location = "Busan",
+            caption = "하단 바 기능을 추가하는 중",
+            timeAgo = "2일 전",
+            likes = 32
+        )
     )
 
-    FeedCard(post)
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(posts) { post ->
+            FeedCard(post)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
 }
 
 @Composable
 fun FeedCard(post: PostData) {
     var liked by remember { mutableStateOf(false) }
     var starred by remember { mutableStateOf(false) }
+    var showCommentDialog by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+    var savedComment by remember { mutableStateOf("") }
+    var showShareDialog by remember { mutableStateOf(false) }
     val likeCount = if (liked) post.likes + 1 else post.likes
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -176,6 +205,13 @@ fun FeedCard(post: PostData) {
                 .fillMaxWidth()
                 .height(300.dp)
                 .background(Color(0xFFE0E0E0))
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onDoubleTap = {
+                            liked = true
+                        }
+                    )
+                }
         )
 
         // 기능 버튼 행
@@ -197,13 +233,17 @@ fun FeedCard(post: PostData) {
             Icon(
                 imageVector = Icons.Default.Email,
                 contentDescription = "댓글",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { showCommentDialog = true }
             )
             Spacer(modifier = Modifier.width(14.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "공유",
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { showShareDialog = true }
             )
             Spacer(modifier = Modifier.weight(1f))
             Icon(
@@ -246,11 +286,64 @@ fun FeedCard(post: PostData) {
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
         )
     }
+
+    if (showCommentDialog) {
+        AlertDialog(
+            onDismissRequest = { showCommentDialog = false },
+            title = { Text("댓글") },
+            text = {
+                Column {
+                    if (savedComment.isNotBlank()) {
+                        Text("최근 댓글: $savedComment")
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                    TextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        label = { Text("댓글 입력") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (commentText.isNotBlank()) {
+                            savedComment = commentText
+                            commentText = ""
+                        }
+                        showCommentDialog = false
+                    }
+                ) {
+                    Text("등록")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCommentDialog = false }) {
+                    Text("닫기")
+                }
+            }
+        )
+    }
+
+    if (showShareDialog) {
+        AlertDialog(
+            onDismissRequest = { showShareDialog = false },
+            title = { Text("공유") },
+            text = { Text("게시물이 공유되었습니다.") },
+            confirmButton = {
+                TextButton(onClick = { showShareDialog = false }) {
+                    Text("확인")
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun SearchScreen() {
     var keyword by remember { mutableStateOf("") }
+    val trimmedKeyword = keyword.trim()
 
     Column(
         modifier = Modifier
@@ -270,13 +363,20 @@ fun SearchScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("검색 결과:")
+        Text(
+            if (trimmedKeyword.isEmpty()) {
+                "검색어를 입력하면 결과가 표시됩니다."
+            } else {
+                "\"$trimmedKeyword\" 검색 결과입니다."
+            }
+        )
     }
 }
 
 @Composable
 fun NotiScreen() {
     var showDialog by remember { mutableStateOf(false) }
+    var isRead by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -287,12 +387,17 @@ fun NotiScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("새로운 알림이 있습니다.")
+        Text(if (isRead) "새로운 알림이 없습니다." else "새로운 알림이 있습니다.")
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { showDialog = true }) {
-            Text("알림 보기")
+        Button(
+            onClick = {
+                isRead = true
+                showDialog = true
+            }
+        ) {
+            Text(if (isRead) "알림 다시 보기" else "알림 보기")
         }
     }
 
@@ -312,9 +417,11 @@ fun NotiScreen() {
 
 @Composable
 fun ProfileScreen() {
-    var liked by remember { mutableStateOf(false) }
+    var profileName by remember { mutableStateOf("charles_jh04") }
+    var inputName by remember { mutableStateOf(profileName) }
     var count by remember { mutableStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -324,7 +431,28 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("내 프로필 화면 추가 예정.")
+        Text("닉네임: $profileName")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = inputName,
+            onValueChange = { inputName = it },
+            label = { Text("닉네임 입력") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (inputName.isNotBlank()) {
+                    profileName = inputName.trim()
+                }
+            }
+        ) {
+            Text("이름 수정")
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -337,24 +465,24 @@ fun ProfileScreen() {
         Button(onClick = { showDialog = true }) {
             Text("방문자 수: $count")
         }
-        
+
         if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("방문자 수: $count") },
-            text = { Text("방문자 수를 초기화하시겠습니까?") },
-            confirmButton = {
-                TextButton(onClick = { count = 0; showDialog = false }) {
-                    Text("확인")
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("방문자 수: $count") },
+                text = { Text("방문자 수를 초기화하시겠습니까?") },
+                confirmButton = {
+                    TextButton(onClick = { count = 0; showDialog = false }) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("취소")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("취소")
-                }
-            }
-        )
-    }
+            )
+        }
     }
 }
 
