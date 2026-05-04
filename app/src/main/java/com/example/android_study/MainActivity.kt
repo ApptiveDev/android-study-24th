@@ -4,9 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -46,8 +46,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,8 +58,10 @@ import androidx.compose.ui.unit.sp
 import com.example.android_study.ui.theme.AndroidstudyTheme
 
 data class PostData(
+    val profileImage: Int,
     val userName: String,
     val location: String,
+    val feedImage: Int,
     val caption: String,
     val timeAgo: String,
     val likes: Int
@@ -128,22 +133,28 @@ fun MainScreen() {
 fun HomeScreen() {
     val posts = listOf(
         PostData(
+            profileImage = R.drawable.pnu,
             userName = "charles_jh04",
             location = "Pusan National University",
+            feedImage = R.drawable.pnu,
             caption = "스터디 과제 중!",
             timeAgo = "3시간 전",
             likes = 128
         ),
         PostData(
+            profileImage = R.drawable.bridge,
             userName = "apptive_study",
             location = "PBL2",
+            feedImage = R.drawable.bridge,
             caption = "연습중",
             timeAgo = "어제",
             likes = 256
         ),
         PostData(
+            profileImage = R.drawable.night,
             userName = "compose_dev",
             location = "Busan",
+            feedImage = R.drawable.night,
             caption = "하단 바 기능을 추가하는 중",
             timeAgo = "2일 전",
             likes = 32
@@ -178,11 +189,13 @@ fun FeedCard(post: PostData) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 아바타
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "avatar",
-                modifier = Modifier.size(38.dp),
-                tint = Color.Gray
+            Image(
+                painter = painterResource(id = post.profileImage),
+                contentDescription = "프로필 이미지",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
@@ -200,11 +213,13 @@ fun FeedCard(post: PostData) {
         }
 
         // 피드 이미지
-        Box(
+        Image(
+            painter = painterResource(id = post.feedImage),
+            contentDescription = "피드 이미지",
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
-                .background(Color(0xFFE0E0E0))
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = {
