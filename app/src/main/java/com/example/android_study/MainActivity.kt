@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,7 +91,8 @@ data class PostData(
     val id: Int,
     val userName: String,
     val location: String,
-    val timeAgo: String
+    val timeAgo: String,
+    var isLiked: Boolean = false
 )
 
 @Composable
@@ -192,7 +194,7 @@ fun FeedUI(){
             .padding(paddingValues)){
             when(selectedTab){
               0 -> HomeScreen(stories = stories, posts = posts)
-              1 -> LikedScreen()
+              1 -> LikedScreen(posts = posts)
               2 -> SearchScreen(posts = posts)
               3 -> ProfileScreen()
             }
@@ -304,7 +306,7 @@ fun StorySection(stories: List<StoryData>){
 
 @Composable
 fun PostItem(post : PostData){
-    var liked by remember{ mutableStateOf(false)}
+    var liked by remember{ mutableStateOf(post.isLiked)}
     Column(modifier = Modifier.padding(bottom = 16.dp)) {
         Card(
             modifier = Modifier
@@ -353,7 +355,18 @@ fun PostItem(post : PostData){
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Default.Favorite, "like", tint = Color.Gray)
+                    Icon(
+                        imageVector=if(liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Like",
+                        modifier = Modifier.clickable(
+                            interactionSource = remember{MutableInteractionSource()},
+                            indication = null
+                        ){
+                            liked = !liked
+                            post.isLiked = liked
+                        },
+                        tint = if (liked) PointColor else Color.Gray
+                        )
                     Icon(Icons.Default.Search, "search", tint = Color.Gray)
                     Icon(Icons.Default.Send, "send", tint = Color.Gray)
                     Spacer(modifier = Modifier.weight(1f))
@@ -364,9 +377,23 @@ fun PostItem(post : PostData){
     }
 }
 @Composable
-fun LikedScreen(){
-
-
+fun LikedScreen(posts: List<PostData>){
+    val likedPosts = remember(posts.map{it.isLiked}){
+        posts.filter {it.isLiked}
+    }
+    LazyColumn(modifier = Modifier.fillMaxSize()){
+        item{
+            Text(
+                "Liked Posts",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        items(likedPosts.size){index ->
+            PostItem(post = likedPosts[index])
+        }
+    }
 }
 @Composable
 fun SearchScreen(posts : List<PostData>){
