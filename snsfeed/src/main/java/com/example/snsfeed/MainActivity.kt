@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,9 +31,9 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -45,13 +46,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+//import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -448,11 +450,123 @@ fun MessageScreen() {
 
 @Composable
 fun ProfileScreen() {
-    Text(text = "Profile Screen")
+    //Text(text = "Profile Screen")
+
+    LazyColumn(modifier = Modifier.fillMaxSize()
+    ) {
+        item {ProfileTopBar(accountId = "my_pf")}
+        item {ProfileInfo()}
+        //item {ProfileActionButtons()}
+        //item {ProfileTabBar()}
+    }
+
 }
 
+@Composable
+fun ProfileTopBar(accountId: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
+        Spacer(modifier = Modifier.width(130.dp))
+        Text(
+            text = accountId,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.width(130.dp))
+        Icon(imageVector = Icons.Default.Menu, contentDescription = null, modifier = Modifier.size(28.dp))
+    }
+}
+
+@Composable
+fun ProfileInfo() {
+    //Text(text = "Profile Information")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //profile image area
+        Box {
+            Image(
+                painter = painterResource(id = R.drawable.hellokitty),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(80.dp).clip(CircleShape)
+                    .border(
+                        width = 2.dp,
+                        brush = SolidColor(Color.White),
+                        shape = CircleShape
+                    ),
+                contentScale = ContentScale.Crop
+            )
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add Story",
+                modifier = Modifier
+                    .size(20.dp)
+                    .align(Alignment.BottomEnd)
+                    .clip(CircleShape)
+                    .background(Color(0xC13584), CircleShape)
+                    .padding(2.dp),
+                tint = Color.White
+            )
+        }
+        //Spacer(modifier = Modifier.width(8.dp))
+        //posts, followers, following
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        ) {
+            Text(
+                text = "AccName",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ProfileStats("0", "개시물")
+                Spacer(modifier = Modifier.width(50.dp))
+                ProfileStats("0", "팔로워")
+                Spacer(modifier = Modifier.width(50.dp))
+                ProfileStats("1", "팔로잉")
+            }
+        }
+    }
+}
+@Composable
+fun ProfileStats(count: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = count, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(text = label, fontSize = 13.sp)
+    }
+}
+/*
+@Composable
+fun ProfileActionButtons() {
+    Text(text = "Profile action buttons")
+}
+
+@Composable
+fun ProfileTabBar() {
+    Text(text = "Profile Tab Bar")
+}
+*/
 @Preview(showBackground = true)
 @Composable
 fun PreviewSNSFeed() {
     SnsFeedScreen()
 }
+
+
+
