@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -40,15 +41,21 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -94,7 +102,7 @@ data class PostData(
     val timeAgo: String,
     var isLiked: Boolean = false
 )
-
+var accountUser by mutableStateOf("jwy")
 @Composable
 fun FeedUI(){
     var selectedTab by remember {mutableStateOf(0)}
@@ -112,7 +120,9 @@ fun FeedUI(){
             PostData(1, "jeong", "Busan", "10m ago"),
             PostData(2, "woo", "Seoul", "2h ago"),
             PostData(3, "young", "Ulsan", "Yesterday"),
-            PostData(4, "bong", "Busan", "3 days ago")
+            PostData(4, "jwy", "Busan", "3 days ago"),
+            PostData(5, "jwy", "Busan", "3 days ago"),
+            PostData(6, "jwy", "Busan", "3 days ago")
         )
     }
 
@@ -131,7 +141,7 @@ fun FeedUI(){
                         .clickable { }
                         .size(28.dp))
                     Spacer(modifier = Modifier.width(16.dp))//위에 plus 해결하기
-                    Text(text = "jwy", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(text = accountUser, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Box(contentAlignment = Alignment.TopEnd){
                     Icon(Icons.Default.Email, contentDescription = "Messages", modifier = Modifier
@@ -196,7 +206,7 @@ fun FeedUI(){
               0 -> HomeScreen(stories = stories, posts = posts)
               1 -> LikedScreen(posts = posts)
               2 -> SearchScreen(posts = posts)
-              3 -> ProfileScreen()
+              3 -> ProfileScreen(posts = posts)
             }
         }
     }
@@ -377,6 +387,7 @@ fun PostItem(post : PostData){
     }
 }
 @Composable
+//좋아요 누른 게시물 모아보기
 fun LikedScreen(posts: List<PostData>){
     val likedPosts = remember(posts.map{it.isLiked}){
         posts.filter {it.isLiked}
@@ -396,6 +407,7 @@ fun LikedScreen(posts: List<PostData>){
     }
 }
 @Composable
+//이름 검색해 게시물 검색
 fun SearchScreen(posts : List<PostData>){
     var name by remember{mutableStateOf("")}
     val filteredPosts = remember(name) {
@@ -422,7 +434,91 @@ fun SearchScreen(posts : List<PostData>){
     }
 }
 @Composable
-fun ProfileScreen(){
+fun ProfileScreen(posts : List<PostData>){
+    var onEditing by remember {mutableStateOf(false)}
+    var newName by remember(accountUser) {mutableStateOf(accountUser)}
+    val myPosts = remember{
+        posts.filter{post -> post.userName == accountUser}
+    }
+    var followerNumber = 0
+    var followingNumber =0
+    Column{
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            item{
+                Column(horizontalAlignment = Alignment.CenterHorizontally){
+                    Icon(Icons.Default.Person, "profile",tint=Color.Gray,
+                        modifier = Modifier.size(80.dp)
+                    )
+                    if(onEditing){
+                        TextField(
+                            value = newName,
+                            onValueChange = {newName = it },
+                            label = {Text("입력")},
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    accountUser = newName
+                                    onEditing = false}) {
+                                    Icon(Icons.Default.Check, contentDescription = "확인", modifier=Modifier.size(24.dp))
+                                }
+                            }
+                        )
+                    }else{
+                        Button(onClick = {onEditing = true},
+                            modifier= Modifier
+                                .width(70.dp)
+                                .height(25.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PointColor
+                            )
+                        ){
+                            Text("이름 변경", color = Color.White,fontSize=12.sp)
+                        }
+                    }
+                }
+            }
+            item{
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 30.dp),
+                    horizontalArrangement = Arrangement.spacedBy(30.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                        Text("${myPosts.size}",fontWeight = FontWeight.Bold,fontSize = 25.sp)
+                        Text("posts",fontSize = 16.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                            Text("${followerNumber}",fontWeight = FontWeight.Bold,fontSize = 25.sp)
+                            Text("followers",fontSize = 16.sp)
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                            Text("${followingNumber}",fontWeight = FontWeight.Bold,fontSize = 25.sp)
+                            Text("followings",fontSize = 15.sp)
+                    }
+                }
+            }
+        }
+        Spacer(modifier=Modifier.height(16.dp))
+        //내 게시물
+        LazyColumn(
+            modifier=Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment=Alignment.CenterHorizontally,
+        ){
+            items(myPosts.size) { index ->
+                val post = myPosts[index]
+                PostItem(post=post)
+            }
+        }
+    }
 
 }
 
