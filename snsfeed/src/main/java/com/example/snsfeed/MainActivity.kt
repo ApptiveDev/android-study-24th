@@ -422,33 +422,70 @@ fun StoryItem(story: StoryData) {
 
 @Composable
 fun SearchScreen() {
-    var keyword by remember {mutableStateOf("")}
+    var keyword by remember { mutableStateOf("") }
+    //val categories = listOf("food", "music", "study", "travel", "technology")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            //검색창
+            TextField(
+                value = keyword,
+                onValueChange = { keyword = it },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth()
+                    .height(52.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+            )
+        }
+
+        if (keyword.isEmpty()) {
+            //before search
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Search, contentDescription = null,  tint = Color.LightGray)
+                    Text("검색어를 입력해주세요", color = Color.Gray)
+                }
+            }
+        } else {
+            //검색 결과
+            LazyColumn {
+                items(5) { index ->
+                    Text(
+                        text = "'$keyword'에 대한 결과 $index",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun CategoryCard(category: String) {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Transparent)
+            .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
     ) {
         Text(
-            text = "검색 화면",
-            style = MaterialTheme.typography.headlineLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(vertical = 16.dp)
-                .background(Color.Magenta)
-                .fillMaxWidth()
+            text = category,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        TextField(
-            value = keyword,
-            onValueChange = {keyword = it},
-            label = {
-                Text("검색어 입력")
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("")
-        }
+    }
 }
 
 @Composable
