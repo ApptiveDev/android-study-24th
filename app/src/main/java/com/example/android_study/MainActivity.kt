@@ -1,5 +1,6 @@
 package com.example.android_study
 
+import android.R.attr.bottom
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -62,6 +63,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.items
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,156 +136,98 @@ fun HomeScreen(onNavigateToPopular:() -> Unit) {
     var selected by remember { mutableStateOf<Post?>(null) }
 
     if(selected == null) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .verticalScroll(rememberScrollState())
+                .background(Color.Black),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             //배너
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.apple),
-                    contentDescription = "Banner",
+            item {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            compositingStrategy =
-                                androidx.compose.ui.graphics.CompositingStrategy.Offscreen
-                        }
-                        .drawWithContent {
-                            val gradient = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black,
-                                    Color.Black.copy(alpha = 0.5f),
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Transparent
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.apple),
+                        contentDescription = "Banner",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                compositingStrategy =
+                                    androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+                            }
+                            .drawWithContent {
+                                val gradient = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black,
+                                        Color.Black.copy(alpha = 0.5f),
+                                        Color.Black.copy(alpha = 0.3f),
+                                        Color.Transparent
+                                    )
                                 )
-                            )
-                            drawContent()
-                            drawRect(
-                                brush = gradient,
-                                blendMode = BlendMode.DstIn
-                            )
-                        },
-                    contentScale = ContentScale.Crop
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Find your own taste", color = Color.White)
+                                drawContent()
+                                drawRect(
+                                    brush = gradient,
+                                    blendMode = BlendMode.DstIn
+                                )
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "Find your own taste", color = Color.White)
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            //중간 글
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Popular", color = Color.White)
-                Text("see Friend >",
-                    color = Color.White,
-                    modifier = Modifier.clickable{
-                        onNavigateToPopular()
-                    }
-                )
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                //중간 글
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Popular", color = Color.White)
+                    Text(
+                        "see Friend >",
+                        color = Color.White,
+                        modifier = Modifier.clickable {
+                            onNavigateToPopular()
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+
             //두 줄로 게시물 보여주기
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
+            items(dummy.chunked(2)) { rowPost ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    dummy.filterIndexed { index, _ -> index % 2 == 1 }.forEach { post ->
-                        Column(
-                            modifier = Modifier.clickable { selected = post }
-                        ) {
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 1.dp),
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(post.title, color = Color.Gray)
-                            }
-                            Image(
-                                painter = painterResource(id = post.mainImage),
-                                contentDescription = post.title,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight()
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.FillWidth
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 1.dp),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(post.userName, color = Color.DarkGray)
-                            }
-                        }
+                    Box(modifier = Modifier.weight(1f)) {
+                        PostItem(post = rowPost[0], onClick = { selected = rowPost[0] })
                     }
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy((16.dp))
-                ) {
 
-                    dummy.filterIndexed { index, _ -> index % 2 == 0 }.forEach { post ->
-                        Column(
-                            modifier = Modifier.clickable { selected = post }
-                        ) {
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 1.dp),
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(post.title, color = Color.Gray)
-                            }
-                            Image(
-                                painter = painterResource(id = post.mainImage),
-                                contentDescription = post.title,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight()
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.FillWidth
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 1.dp),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(post.userName, color = Color.DarkGray)
-                            }
+                    if (rowPost.size > 1) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            PostItem(post = rowPost[1], onClick = { selected = rowPost[1] })
                         }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
+
             }
-
         }
     }
     else{
@@ -292,6 +237,42 @@ fun HomeScreen(onNavigateToPopular:() -> Unit) {
         )
     }
 
+}
+
+@Composable
+fun PostItem(post : Post, onClick : () -> Unit){
+    Column(
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 1.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(post.title, color = Color.Gray)
+        }
+        Image(
+            painter = painterResource(id = post.mainImage),
+            contentDescription = post.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.FillWidth
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 1.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(post.userName, color = Color.DarkGray)
+        }
+    }
 }
 
 @Composable
