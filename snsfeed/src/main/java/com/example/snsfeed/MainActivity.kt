@@ -23,22 +23,31 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -52,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 //import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
@@ -438,9 +448,7 @@ fun SearchScreen() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text("")
-
-
-}
+        }
 }
 
 @Composable
@@ -448,22 +456,28 @@ fun MessageScreen() {
     Text(text = "Message Screen")
 }
 
+//profile data class
+data class ProfileData(
+    val accName: String,
+    val accId: String
+)
 @Composable
 fun ProfileScreen() {
     //Text(text = "Profile Screen")
+    val AccName = "Hello Kitty"
+    val AccId = "hello_kitty"
 
     LazyColumn(modifier = Modifier.fillMaxSize()
     ) {
-        item {ProfileTopBar(accountId = "my_pf")}
-        item {ProfileInfo()}
-        //item {ProfileActionButtons()}
-        //item {ProfileTabBar()}
+        item {ProfileTopBar(accId = AccId)}
+        item {ProfileInfo(AccName = AccName)}
+        item {ProfileActionButtons()}
+        item {ProfileTapBar()}
     }
-
 }
 
 @Composable
-fun ProfileTopBar(accountId: String) {
+fun ProfileTopBar(accId: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -473,7 +487,7 @@ fun ProfileTopBar(accountId: String) {
         Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
         Spacer(modifier = Modifier.width(130.dp))
         Text(
-            text = accountId,
+            text = accId,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -483,7 +497,7 @@ fun ProfileTopBar(accountId: String) {
 }
 
 @Composable
-fun ProfileInfo() {
+fun ProfileInfo(AccName: String) {
     //Text(text = "Profile Information")
     Row(
         modifier = Modifier
@@ -518,14 +532,14 @@ fun ProfileInfo() {
             )
         }
         //Spacer(modifier = Modifier.width(8.dp))
-        //posts, followers, following
+        //AccName, posts, followers, following
         Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 16.dp)
         ) {
             Text(
-                text = "AccName",
+                text = AccName,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -551,17 +565,79 @@ fun ProfileStats(count: String, label: String) {
         Text(text = label, fontSize = 13.sp)
     }
 }
-/*
+
 @Composable
 fun ProfileActionButtons() {
-    Text(text = "Profile action buttons")
+    //Text(text = "Profile action buttons")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        //edit profile button
+        Button(
+            onClick = { },
+            enabled = false,
+            modifier = Modifier.weight(1f).height(36.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFEFEF))
+        ) {
+            Text("프로필 편집", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        //share profile button
+        Button(
+            onClick = { },
+            enabled = false,
+            modifier = Modifier.weight(1f).height(36.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFEFEF))
+        ) {
+            Text("프로필 공유", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        //follower suggestion button
+        IconButton(
+            onClick = { },
+            enabled = false,
+            modifier = Modifier.size(36.dp).background(Color(0xFFEFEFEF), RoundedCornerShape(8.dp))
+        ) {
+            Icon(imageVector = Icons.Default.Person, contentDescription = null, modifier = Modifier.size(20.dp))
+        }
+    }
 }
 
 @Composable
-fun ProfileTabBar() {
-    Text(text = "Profile Tab Bar")
+fun ProfileTapBar() {
+    //Text(text = "Profile Tab Bar")
+
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf(Icons.Default.List, Icons.Default.AccountBox)
+
+    //Tabs container
+    TabRow(
+        selectedTabIndex = selectedTabIndex,
+        containerColor = Color.White,
+        contentColor = Color.Black,
+    ) {
+        tabs.forEachIndexed { index, icon ->
+            Tab(
+                selected = selectedTabIndex == index,
+                onClick = { selectedTabIndex = index },
+                icon = {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = if (selectedTabIndex == index) Color.Black else Color.Gray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+            )
+        }
+    }
 }
-*/
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewSNSFeed() {
