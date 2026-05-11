@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -341,11 +342,87 @@ fun PostItem(
 
 @Composable
 fun Popular() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("확인")
+    val dummy = listOf(
+        Post(
+            id = 1,
+            userName = "player1",
+            title = "bed",
+            mainImage = R.drawable.bed,
+            subImages = listOf(
+                R.drawable.player1,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            id = 2,
+            userName = "player2",
+            title = "clover",
+            mainImage = R.drawable.clover,
+            subImages = listOf(
+                R.drawable.player2,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            id = 3,
+            userName = "player3",
+            title = "flower",
+            mainImage = R.drawable.flower,
+            subImages = listOf(
+                R.drawable.player3,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            id = 4,
+            userName = "player4",
+            title = "sea",
+            mainImage = R.drawable.sea,
+            subImages = listOf(
+                R.drawable.player4,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        )
+    )
+    var selectedFriend by remember {  mutableStateOf<Post?>(null) }
+
+    if(selectedFriend == null){
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .padding(horizontal = 16.dp),
+            verticalItemSpacing = 16.dp,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+
+            items(dummy) { post ->
+                PostItem(
+                    post = post,
+                    onClick = { selectedFriend = post }
+                )
+            }
+        }
+    } else {
+        DetailScreen(
+            post = selectedFriend!!,
+            onBack = { selectedFriend = null }
+        )
+
     }
 }
 
@@ -430,18 +507,43 @@ fun DetailScreen(
 
 @Composable
 fun My() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("확인")
+    LazyColumn {
+        item{
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.my),
+                    contentDescription = "Banner",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            compositingStrategy =
+                                androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+                        }
+                        .drawWithContent {
+                            val gradient = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black,
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Transparent
+                                )
+                            )
+                            drawContent()
+                            drawRect(
+                                brush = gradient,
+                                blendMode = BlendMode.DstIn
+                            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    AndroidstudyTheme {
-        MainScreen()
-    }
+
 }
