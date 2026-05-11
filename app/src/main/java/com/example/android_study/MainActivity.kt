@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -507,43 +508,141 @@ fun DetailScreen(
 
 @Composable
 fun My() {
-    LazyColumn {
-        item{
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.my),
-                    contentDescription = "Banner",
+    val myData = Post(
+        id = 0,
+        userName = "me",
+        title = "home",
+        mainImage = R.drawable.my,
+        subImages = listOf(
+            R.drawable.my,
+            R.drawable.rilakkuma,
+            R.drawable.cat,
+            R.drawable.nail,
+            R.drawable.withcat,
+            R.drawable.earphone
+
+        )
+    )
+
+    var showDetail by remember { mutableStateOf(false) }
+    if (showDetail = false) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+
+        ) {
+            item {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            compositingStrategy =
-                                androidx.compose.ui.graphics.CompositingStrategy.Offscreen
-                        }
-                        .drawWithContent {
-                            val gradient = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black,
-                                    Color.Black.copy(alpha = 0.5f),
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Transparent
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.my),
+                        contentDescription = "My",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                compositingStrategy =
+                                    androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+                            }
+                            .drawWithContent {
+                                val gradient = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black,
+                                        Color.Black.copy(alpha = 0.5f),
+                                        Color.Black.copy(alpha = 0.3f),
+                                        Color.Transparent
+                                    )
                                 )
-                            )
-                            drawContent()
-                            drawRect(
-                                brush = gradient,
-                                blendMode = BlendMode.DstIn
-                            )
-                        },
-                    contentScale = ContentScale.Crop
-                )
+                                drawContent()
+                                drawRect(
+                                    brush = gradient,
+                                    blendMode = BlendMode.DstIn
+                                )
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "My Archive",
+                            color = Color.White
+                        )
+                    }
+
+                }
+            }
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+
+                ) {
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Text(
+                        text = "내 정보",
+                        color = Color.White
+                    )
+                    Divider(
+                        modifier = Modifier.padding(horizontal = 3.dp),
+                        color = Color.DarkGray,
+                        thickness = 2.dp
+                    )
+                    Text(
+                        text = "설정",
+                        color = Color.White
+                    )
+                    Divider(
+                        modifier = Modifier.padding(horizontal = 3.dp),
+                        color = Color.DarkGray,
+                        thickness = 2.dp
+                    )
+                    Text(
+                        text = "미리보기 > ",
+                        color = Color.White,
+                        modifier = Modifier.clickable {
+                            showDetail = true
+                        }
+                    )
+                    Divider(
+                        modifier = Modifier.padding(horizontal = 3.dp),
+                        color = Color.DarkGray,
+                        thickness = 2.dp
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "My Photo",
+                            color = Color.White
+                        )
+                        Text(
+                            text = "수정하기 >",
+                            color = Color.LightGray
+                        )
+
+                    }
+
+                }
             }
         }
+
+
+    } else{
+        DetailScreen(
+            post = myData,
+            onBack = { showDetail = false}
+        )
     }
-
-
 }
