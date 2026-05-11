@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,14 +14,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -54,6 +61,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -193,22 +201,23 @@ fun HomeScreen(onNavigateToPopular: () -> Unit) {
     )
 
     var selectedPost by remember { mutableStateOf<Post?>(null) }
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     if (selectedPost == null) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
-                .padding(horizontal = 16.dp),
+                .background(Color.Black),
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp)
+
         ) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .requiredWidth(screenWidth)
                         .height(300.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -240,7 +249,8 @@ fun HomeScreen(onNavigateToPopular: () -> Unit) {
                     )
 
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.requiredWidth(screenWidth)
                     ) {
                         Text(
                             text = "Find your own taste",
@@ -257,7 +267,7 @@ fun HomeScreen(onNavigateToPopular: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -283,6 +293,7 @@ fun HomeScreen(onNavigateToPopular: () -> Unit) {
                     post = post,
                     onClick = { selectedPost = post }
                 )
+
             }
         }
     } else {
@@ -525,14 +536,17 @@ fun My() {
     )
 
     var showDetail by remember { mutableStateOf(false) }
-    if (showDetail = false) {
-        LazyColumn(
+    if (showDetail ==  false) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.Black),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
 
         ) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -576,65 +590,81 @@ fun My() {
 
                 }
             }
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
 
                 ) {
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     Text(
                         text = "내 정보",
-                        color = Color.White
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
                     )
                     Divider(
-                        modifier = Modifier.padding(horizontal = 3.dp),
+                        modifier = Modifier.padding(horizontal = 2.dp),
                         color = Color.DarkGray,
                         thickness = 2.dp
                     )
                     Text(
                         text = "설정",
-                        color = Color.White
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
                     )
                     Divider(
-                        modifier = Modifier.padding(horizontal = 3.dp),
+                        modifier = Modifier.padding(horizontal = 2.dp),
                         color = Color.DarkGray,
                         thickness = 2.dp
                     )
                     Text(
-                        text = "미리보기 > ",
+                        text = "미리보기  > ",
                         color = Color.White,
                         modifier = Modifier.clickable {
                             showDetail = true
                         }
+                            .padding(16.dp)
                     )
                     Divider(
-                        modifier = Modifier.padding(horizontal = 3.dp),
+                        modifier = Modifier.padding(horizontal = 2.dp),
                         color = Color.DarkGray,
                         thickness = 2.dp
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "My Photo",
-                            color = Color.White
+                            text = "M y   P h o t o",
+                            color = Color.Gray
                         )
                         Text(
                             text = "수정하기 >",
-                            color = Color.LightGray
+                            color = Color.Gray
                         )
 
+
                     }
+                    Spacer(modifier = Modifier.height(10.dp))
 
                 }
+            }
+            items(myData.subImages) { post ->
+                Image(
+                    painter = painterResource(id = post),
+                    contentDescription = "My Photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 
