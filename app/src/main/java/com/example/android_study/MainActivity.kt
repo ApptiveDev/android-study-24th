@@ -7,29 +7,34 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 
 data class PostData(
     val userName: String,
@@ -38,6 +43,12 @@ data class PostData(
     val likeCount: Int,
     val description: String
 )
+
+sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
+    object Home : Screen("home", "홈", Icons.Default.Home)
+    object Search : Screen("search", "검색", Icons.Default.Search)
+    object Profile : Screen("profile", "프로필", Icons.Default.Person)
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,13 +80,18 @@ fun HomeScreen(postList: List<PostData>) {
             ) {
                 Column {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
                             painter = painterResource(id = post.userProfileRes),
                             contentDescription = null,
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.LightGray),
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.width(10.dp))
@@ -102,7 +118,9 @@ fun HomeScreen(postList: List<PostData>) {
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { }) {
@@ -117,9 +135,15 @@ fun HomeScreen(postList: List<PostData>) {
                     }
 
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                     ) {
-                        Text(text = "좋아요 ${post.likeCount}개", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            text = "좋아요 ${post.likeCount}개",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(text = post.description, fontSize = 14.sp, lineHeight = 20.sp)
                     }
@@ -133,22 +157,51 @@ fun HomeScreen(postList: List<PostData>) {
 fun SearchScreen() {
     var keyword by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
-        Text("검색 화면", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(16.dp))
-        TextField(
+    Column(modifier = Modifier.fillMaxSize()) {
+        // 1. 현대적인 검색바 디자인
+        OutlinedTextField(
             value = keyword,
             onValueChange = { keyword = it },
-            label = { Text("검색어 입력") },
-            modifier = Modifier.fillMaxWidth()
-
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            placeholder = { Text("관심사를 검색해보세요") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White
+            )
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("검색 결과: $keyword")
+
+        // 2. 탐색 탭의 핵심: 3열 이미지 그리드
+        val imageList = (1..20).toList() // 임시 데이터
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3), // 3열 고정
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(1.dp),
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
+        ) {
+            items(imageList) { index ->
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .background(Color.LightGray) // 실제로는 여기에 Image가 들어감
+                ) {
+                    Text(
+                        text = "$index",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.DarkGray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
     }
 }
+
 @Composable
 fun ProfileScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -158,43 +211,48 @@ fun ProfileScreen() {
 
 @Composable
 fun SnsFeedScreen() {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
+    // 더미 데이터 정의 (HomeScreen에 전달용)
     val postList = listOf(
         PostData("gxhyn_", R.drawable.profile, R.drawable.my_photo, 124, "#Apptive #Android"),
         PostData("gxhyn_", R.drawable.profile, R.drawable.ph, 89, "스터디 화이팅")
     )
 
+    val items = listOf(Screen.Home, Screen.Search, Screen.Profile)
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("홈") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    label = { Text("검색") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("프로필") }
-                )
+            NavigationBar(containerColor = Color.White) {
+                items.forEach { screen ->
+                    NavigationBarItem(
+                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+                        label = { Text(screen.title) },
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedTab) {
-                0 -> HomeScreen(postList)
-                1 -> SearchScreen()
-                2 -> ProfileScreen()
-            }
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Home.route) { HomeScreen(postList) }
+            composable(Screen.Search.route) { SearchScreen() }
+            composable(Screen.Profile.route) { ProfileScreen() }
         }
     }
 }
@@ -207,14 +265,13 @@ fun SnsFeedScreenPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "검색 화면")
+@Preview(showBackground = true)
 @Composable
 fun SearchScreenPreview() {
     MaterialTheme {
         SearchScreen()
     }
 }
-
 
 @Preview(showBackground = true, name = "프로필 화면")
 @Composable
