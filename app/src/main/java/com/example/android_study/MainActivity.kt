@@ -210,6 +210,7 @@ fun BottomBarIcon(icon: ImageVector, desc: String, onClick: () -> Unit) {
 }
 @Composable
 fun PostItem(data: PostData) {
+    var isLiked by remember {mutableStateOf(false)}
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -231,17 +232,24 @@ fun PostItem(data: PostData) {
         }
 
         Row {
-            PostActionIcon(Icons.Default.FavoriteBorder, "Like")
-            PostActionIcon(Icons.Outlined.ChatBubbleOutline, "Comment")
-            PostActionIcon(Icons.AutoMirrored.Filled.Send, "Send")
+            PostActionIcon(
+                icon = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                desc = "Like",
+                tint = if (isLiked) Color.Red else Color.Black,
+                onClick = {
+                    isLiked = !isLiked
+                }
+            )
+            PostActionIcon(Icons.Outlined.ChatBubbleOutline, "Comment", onClick = {})
+            PostActionIcon(Icons.AutoMirrored.Filled.Send, "Send", onClick = {})
         }
 
         Text(text = data.caption)
     }
 }
 @Composable
-fun PostActionIcon(icon: ImageVector, desc: String) {
-    IconButton(onClick = { }) {
+fun PostActionIcon(icon: ImageVector, desc: String, onClick: () -> Unit, tint: Color = Color.Black) {
+    IconButton(onClick = onClick) {
         Icon(icon, contentDescription = desc)
     }
 }
