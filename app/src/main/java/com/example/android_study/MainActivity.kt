@@ -38,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 
 // 게시물 데이터 모델
 data class PostData(
@@ -183,15 +184,44 @@ fun PostCard(post: PostData) {
 fun SearchScreen() {
     var keyword by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    // 스터디원 데이터
+// 멤버 데이터에 picsum URL 지정
+    val members = listOf(
+        MemberData("여채언",  "멘토",           "https://picsum.photos/seed/101/200/200"),
+        MemberData("강준이",  "멘토",       "https://picsum.photos/seed/202/200/200"),
+        MemberData("엘간두르","스터디원",   "https://picsum.photos/seed/303/200/200"),
+        MemberData("신예나",  "스터디원",          "https://picsum.photos/seed/404/200/200"),
+        MemberData("안진형",  "스터디원",      "https://picsum.photos/seed/505/200/200"),
+        MemberData("정우영",  "스터디원",       "https://picsum.photos/seed/606/200/200"),
+        MemberData("인민에이","스터디원",           "https://picsum.photos/seed/707/200/200")
+    )
+
+    // 검색어로 필터링
+    val filtered = members.filter { it.name.contains(keyword.trim(), ignoreCase = true) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        // 검색바
         OutlinedTextField(
             value = keyword,
             onValueChange = { keyword = it },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            placeholder = { Text("검색") },
+            placeholder = { Text("스터디원 검색") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                // 입력값 있을 때만 X 버튼 표시
+                if (keyword.isNotEmpty()) {
+                    IconButton(onClick = { keyword = "" }) {
+                        Icon(Icons.Default.Close, contentDescription = "지우기")
+                    }
+                }
+            },
+            singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color.White,
@@ -199,28 +229,84 @@ fun SearchScreen() {
             )
         )
 
-        val imageList = (1..20).toList()
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(1.dp),
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
-        ) {
-            items(imageList) { index ->
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .background(Color.LightGray)
-                ) {
-                    Text(
-                        text = "$index",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.DarkGray,
-                        fontSize = 12.sp
-                    )
+        // 검색 결과
+        if (keyword.isEmpty()) {
+            // 검색 전: 전체 멤버 목록
+            Text(
+                text = "스터디원 ${members.size}명",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
+            LazyColumn {
+                items(members) { member ->
+                    MemberCard(member)
                 }
+            }
+        } else if (filtered.isEmpty()) {
+            // 검색 결과 없음
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("\"$keyword\" 검색 결과가 없어요", color = Color.Gray, fontSize = 14.sp)
+            }
+        } else {
+            // 검색 결과 있음
+            Text(
+                text = "검색 결과 ${filtered.size}명",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
+            LazyColumn {
+                items(filtered) { member ->
+                    MemberCard(member)
+                }
+            }
+        }
+    }
+}
+
+// 멤버 데이터 모델
+data class MemberData(
+    val name: String,
+    val role: String,
+    val profileUrl: String
+)
+// 멤버 카드
+@Composable
+fun MemberCard(member: MemberData) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(  // Image → AsyncImage
+                model = member.profileUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(member.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(member.role, fontSize = 13.sp, color = Color.Gray)
+            }
+            OutlinedButton(
+                onClick = {},
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Text("팔로우", fontSize = 12.sp, color = Color.Black)
             }
         }
     }
