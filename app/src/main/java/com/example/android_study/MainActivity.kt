@@ -479,7 +479,7 @@ fun SearchScreen(posts : List<PostData>){
 fun ProfileScreen(posts : List<PostData>){
     var onEditing by remember {mutableStateOf(false)}
     var newName by remember(accountUser) {mutableStateOf(accountUser)}
-    val myPosts = remember{
+    val myPosts = remember(accountUser, posts){
         posts.filter{post -> post.userName == accountUser}
     }
     var followerNumber = 0
