@@ -18,7 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.* // [수정] Material 3 핵심 컴포넌트 일괄 지정
+import androidx.compose.material3.ExperimentalMaterial3Api // [수정] TopAppBar 사용을 위한 필수 임포트
+import androidx.compose.material3.HorizontalDivider // [수정] 구형 Divider 대체용 최신 컴포넌트 임포트
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,13 +42,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 
-// ───────── 데이터 모델 및 네비게이션 정의 ─────────
+// ───────── 데이터 모델 정의 ─────────
 data class PostData(
+    val id: Int, // [수정] 게시물 식별 및 실시간 전역 동기화를 위한 고유 ID 추가
     val userName: String,
     val userProfileRes: Int,
     val postImageRes: Int,
     val likeCount: Int,
     val description: String,
+    val isLiked: Boolean = false, // [수정] 컴포저블 내부 remeber 대신 데이터 모델 자체에 좋아요 상태 포함
     val timeAgo: String = "방금 전"
 )
 
@@ -80,18 +84,19 @@ class MainActivity : ComponentActivity() {
 
 // ───────── 홈 화면 ─────────
 @Composable
-fun HomeScreen(postList: List<PostData>) {
+fun HomeScreen(postList: List<PostData>, onLikeToggle: (Int) -> Unit) { // [수정] 좋아요 클릭 이벤트를 전역으로 전달하기 위한 매개변수 추가
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(postList) { post ->
-            PostCard(post)
+            PostCard(post = post, onLikeToggle = { onLikeToggle(post.id) }) // [수정] 상위에서 내려온 람다 함수 매핑
         }
     }
 }
 
+// 게시물 카드
 @Composable
-fun PostCard(post: PostData) {
-    var isLiked by remember { mutableStateOf(false) }
-    var likeCount by remember { mutableIntStateOf(post.likeCount) }
+fun PostCard(post: PostData, onLikeToggle: () -> Unit) { // [수정] 내부 remember 상태를 전부 제거하고 stateless 구조로 변경
+    // var isLiked by remember { ... } -> [수정] 제거됨 (상태 단일화를 위함)
+    // var likeCount by remember { ... } -> [수정] 제거됨
 
     Card(
         modifier = Modifier
@@ -102,6 +107,7 @@ fun PostCard(post: PostData) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
+            // 헤더 (프로필 + 이름)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,6 +133,7 @@ fun PostCard(post: PostData) {
                 }
             }
 
+            // 게시물 사진
             Image(
                 painter = painterResource(id = post.postImageRes),
                 contentDescription = null,
@@ -138,20 +145,19 @@ fun PostCard(post: PostData) {
                 contentScale = ContentScale.Crop
             )
 
+            // 액션 버튼
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    isLiked = !isLiked
-                    likeCount = if (isLiked) likeCount + 1 else likeCount - 1
-                }) {
+                // 좋아요 토글
+                IconButton(onClick = { onLikeToggle() }) { // [수정] 클릭 시 최상위 전역 데이터 리스트를 수정하도록 위임
                     Icon(
-                        imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, // [수정] 전달받은 객체의 상태를 직접 참조
                         contentDescription = null,
-                        tint = if (isLiked) Color.Red else Color.Black
+                        tint = if (post.isLiked) Color.Red else Color.Black // [수정] 전달받은 객체의 상태를 직접 참조
                     )
                 }
                 IconButton(onClick = { }) {
@@ -162,11 +168,12 @@ fun PostCard(post: PostData) {
                 }
             }
 
+            // 좋아요 수 + 설명
             Column(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
                 Text(
-                    text = "좋아요 ${likeCount}개",
+                    text = "좋아요 ${post.likeCount}개", // [수정] 실시간 상태 변경이 바로 반영되도록 호이스팅된 값 사용
                     fontSize = 13.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -302,12 +309,13 @@ fun ProfileStat(value: String, label: String) {
     }
 }
 
-// ───────── 프로필 화면  ─────────
+// ───────── 프로필 화면 ─────────
 @Composable
-fun ProfileScreen(postList: List<PostData>, onPostClick: (PostData) -> Unit) {
+fun ProfileScreen(postList: List<PostData>, onPostClick: (PostData) -> Unit) { // [수정] 단독 상세 화면 라우팅을 위한 이벤트 콜백 람다 매개변수 정의
     var showProfileDialog by remember { mutableStateOf(false) }
 
-    // 프로필 사진 확대 다이얼로그
+    // 피드 사진 클릭 세부화면 Dialog 로직 -> [수정] 제거됨 (단독 상세 네비게이션 화면으로 이관)
+
     if (showProfileDialog) {
         Dialog(onDismissRequest = { showProfileDialog = false }) {
             Box(
@@ -380,7 +388,7 @@ fun ProfileScreen(postList: List<PostData>, onPostClick: (PostData) -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(color = Color(0xFFEEEEEE))
+        HorizontalDivider(color = Color(0xFFEEEEEE)) // [수정] 지원 중단 예정인 구버전 Divider 대신 최신 M3 사양 HorizontalDivider 사용
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -395,7 +403,7 @@ fun ProfileScreen(postList: List<PostData>, onPostClick: (PostData) -> Unit) {
                     modifier = Modifier
                         .aspectRatio(1f)
                         .fillMaxWidth()
-                        .clickable { onPostClick(post) },
+                        .clickable { onPostClick(post) }, // [수정] 다이얼로그 오픈 대신, 전역 네비게이션으로 데이터 패싱 처리를 하기 위해 콜백 호출
                     contentScale = ContentScale.Crop
                 )
             }
@@ -403,8 +411,8 @@ fun ProfileScreen(postList: List<PostData>, onPostClick: (PostData) -> Unit) {
     }
 }
 
-// ───────── 메인 네비게이션 메인 구조 ─────────
-@OptIn(ExperimentalMaterial3Api::class)
+// ───────── 메인 네비게이션 및 전역 상태 관리 ─────────
+@OptIn(ExperimentalMaterial3Api::class) // [수정] 실험적 단계의 M3 TopAppBar 컴포넌트 허용 어노테이션 지정
 @Composable
 fun SnsFeedScreen() {
     val navController = rememberNavController()
@@ -412,14 +420,33 @@ fun SnsFeedScreen() {
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
 
-    val postList = listOf(
-        PostData("gxhyn_", R.drawable.profile, R.drawable.my_photo, 124, "Apptive Android"),
-        PostData("gxhyn_", R.drawable.profile, R.drawable.ph, 89, "스터디 화이팅")
-    )
+    // [수정] 단일 진실 공급원(Single Source of Truth): 모든 화면이 실시간으로 같은 데이터를 보게 만드는 전역 상태 리스트 선언
+    var postList by remember {
+        mutableStateOf(
+            listOf(
+                PostData(1, "gxhyn_", R.drawable.profile, R.drawable.my_photo, 124, "Apptive Android"), // [수정] ID 값 추가 및 공백 우회 제거
+                PostData(2, "gxhyn_", R.drawable.profile, R.drawable.ph, 89, "스터디 화이팅")          // [수정] ID 값 추가
+            )
+        )
+    }
+
+    // [수정] 좋아요 토글 시 전역 상태 리스트의 데이터 객체를 유기적으로 매핑 및 업데이트해주는 비즈니스 로직 함수 정의
+    val handleLikeToggle: (Int) -> Unit = { postId ->
+        postList = postList.map { post ->
+            if (post.id == postId) {
+                val nextLiked = !post.isLiked
+                val nextCount = if (nextLiked) post.likeCount + 1 else post.likeCount - 1
+                post.copy(isLiked = nextLiked, likeCount = nextCount) // 복사본 생성 후 상태 교체
+            } else {
+                post
+            }
+        }
+    }
+
+    val items = listOf(Screen.Home, Screen.Search, Screen.Profile)
 
     Scaffold(
-        topBar = {
-
+        topBar = { // [수정] SNS 감성을 위한 화면별 커스텀 상단 앱 바 레이아웃 배치
             when {
                 currentRoute == Screen.Home.route -> {
                     TopAppBar(
@@ -440,7 +467,7 @@ fun SnsFeedScreen() {
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                     )
                 }
-                currentRoute?.startsWith("detail") == true -> {
+                currentRoute?.startsWith("detail") == true -> { // 상세화면 진입 시 뒤로가기 전용 상단바 노출
                     TopAppBar(
                         title = { Text("게시물", fontWeight = FontWeight.Bold) },
                         navigationIcon = {
@@ -454,26 +481,24 @@ fun SnsFeedScreen() {
             }
         },
         bottomBar = {
-            if (currentRoute?.startsWith("detail") == false || currentRoute == Screen.Home.route || currentRoute == Screen.Search.route || currentRoute == Screen.Profile.route) {
-                if (currentRoute?.startsWith("detail") != true) {
-                    NavigationBar(containerColor = Color.White) {
-                        val items = listOf(Screen.Home, Screen.Search, Screen.Profile)
-                        items.forEach { screen ->
-                            NavigationBarItem(
-                                icon = { Icon(screen.icon, contentDescription = screen.title) },
-                                label = { Text(screen.title) },
-                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                onClick = {
-                                    navController.navigate(screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+            // [수정] 인스타그램 UX 기법 적용: 디테일 상세 단독 피드 화면에서는 하단 네비게이션 바를 숨겨서 글에만 집중하게 설정
+            if (currentRoute?.startsWith("detail") == false) {
+                NavigationBar(containerColor = Color.White) {
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon, contentDescription = screen.title) },
+                            label = { Text(screen.title) },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
                                     }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
             }
@@ -484,24 +509,34 @@ fun SnsFeedScreen() {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { HomeScreen(postList) }
+            composable(Screen.Home.route) {
+                HomeScreen(postList = postList, onLikeToggle = handleLikeToggle) // [수정] 전역 상태 리스트와 공통 토글 이벤트 주입
+            }
             composable(Screen.Search.route) { SearchScreen() }
-
             composable(Screen.Profile.route) {
                 ProfileScreen(postList = postList, onPostClick = { post ->
+                    // [수정] 꼼수 인코딩 우회 대신 ID 값 아규먼트 아키텍처로 완전 리팩토링 진행
                     val safeDescription = post.description.replace("#", "").trim().ifEmpty { "내용없음" }
-                    navController.navigate("detail/${post.userName}/$safeDescription")
+                    navController.navigate("detail/${post.id}/$safeDescription")
                 })
             }
 
-            composable("detail/{userName}/{description}") { backStackEntry ->
-                val userName = backStackEntry.arguments?.getString("userName") ?: ""
+            // [수정] 이번 주 학습 과제 요건 충족: Argument 데이터 안전 전달을 구현한 독립 피드 상세 화면 라우팅 추가
+            composable("detail/{postId}/{description}") { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId")?.toIntOrNull() ?: 0
                 val description = backStackEntry.arguments?.getString("description") ?: ""
 
-                val post = postList.firstOrNull { it.userName == userName } ?: postList[0]
+                // [수정] 중요: 가상의 새 데이터 객체를 임의 조립하지 않고 최상단 전역 리스트에서 ID로 매치되는 실시간 객체를 직접 탐색하여 할당
+                val post = postList.firstOrNull { it.id == postId } ?: postList[0]
 
-                Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F5F5)), contentAlignment = Alignment.TopCenter) {
-                    PostCard(post = post.copy(description = description))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFF5F5F5)),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    // [수정] 홈 화면과 100% 동일한 비즈니스 로직 파이프라인(handleLikeToggle)을 공유하므로 실시간 데이터 연동 동기화 완벽 보장
+                    PostCard(post = post.copy(description = description), onLikeToggle = { handleLikeToggle(post.id) })
                 }
             }
         }
