@@ -73,6 +73,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.android_study.ui.theme.AndroidstudyTheme
 
 
@@ -105,7 +109,9 @@ data class PostData(
 var accountUser by mutableStateOf("jwy")
 @Composable
 fun FeedUI(){
-    var selectedTab by remember {mutableStateOf(0)}
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     val stories = remember{
         listOf(
             StoryData(1, "jeong"),
@@ -168,8 +174,16 @@ fun FeedUI(){
             ){
                 //홈 버튼 부분
                 NavigationBarItem(
-                    selected = selectedTab ==0,
-                    onClick = {selectedTab = 0},
+                    selected = currentRoute == "home",
+                    onClick = {
+                        if(currentRoute != "home"){
+                            navController.navigate("home"){
+                                popUpTo(navController.graph.startDestinationId){saveState=true}
+                                launchSingleTop=true
+                                restoreState=true
+                            }
+                        }
+                              },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home")} ,
                     colors = NavigationBarItemDefaults.colors(
                             indicatorColor = Color.Transparent
@@ -177,8 +191,16 @@ fun FeedUI(){
                 )
                 //좋아요탭 버튼
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = {selectedTab = 1},
+                    selected = currentRoute == "liked",
+                    onClick = {
+                        if(currentRoute != "liked"){
+                            navController.navigate("liked"){
+                                popUpTo(navController.graph.startDestinationId){saveState=true}
+                                launchSingleTop=true
+                                restoreState=true
+                            }
+                        }
+                    },
                     icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "liked") },
                     colors = NavigationBarItemDefaults.colors(
                         indicatorColor = Color.Transparent
@@ -186,14 +208,30 @@ fun FeedUI(){
                 )
                 //검색탭 버튼
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = {selectedTab = 2},
+                    selected = currentRoute == "search",
+                    onClick = {
+                        if(currentRoute != "search"){
+                            navController.navigate("search"){
+                                popUpTo(navController.graph.startDestinationId){saveState=true}
+                                launchSingleTop=true
+                                restoreState=true
+                            }
+                        }
+                    },
                     icon = { Icon(Icons.Default.Search, contentDescription = "Search") }
                 )
                 //계정탭 버튼
                 NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = {selectedTab = 3},
+                    selected = currentRoute == "profile",
+                    onClick = {
+                        if(currentRoute != "profile"){
+                            navController.navigate("profile"){
+                                popUpTo(navController.graph.startDestinationId){saveState=true}
+                                launchSingleTop=true
+                                restoreState=true
+                            }
+                        }
+                    },
                     icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") }
                 )
             }
@@ -201,12 +239,16 @@ fun FeedUI(){
     ){ paddingValues ->
         Box(modifier=Modifier
             .fillMaxSize()
-            .padding(paddingValues)){
-            when(selectedTab){
-              0 -> HomeScreen(stories = stories, posts = posts)
-              1 -> LikedScreen(posts = posts)
-              2 -> SearchScreen(posts = posts)
-              3 -> ProfileScreen(posts = posts)
+            .padding(paddingValues)
+        ){
+            NavHost(
+                navController = navController,
+                startDestination = "home"
+            ){
+                composable("home") { HomeScreen(stories = stories, posts = posts) }
+                composable("liked") { LikedScreen(posts = posts) }
+                composable("search") { SearchScreen(posts = posts) }
+                composable("profile") { ProfileScreen(posts = posts) }
             }
         }
     }
