@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,14 +39,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -52,10 +53,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -66,7 +65,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -243,7 +241,8 @@ fun FeedUI(){
         ){
             NavHost(
                 navController = navController,
-                startDestination = "home"
+                startDestination = "home",
+
             ){
                 composable("home") { HomeScreen(stories = stories, posts = posts) }
                 composable("liked") { LikedScreen(posts = posts) }
@@ -281,7 +280,7 @@ fun HomeScreen(stories : List<StoryData>, posts : List<PostData>) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .clickable{}
+                            .clickable {}
                             .background(Color.White, RoundedCornerShape(20.dp))
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                     ) {
@@ -400,11 +399,15 @@ fun PostItem(post : PostData){
                         .height(300.dp)
                         .background(Color(0xFFFFCDD2))
                 ) {
-                    Icon(Icons.Default.PlayArrow, "paly", tint = Color.White, modifier = Modifier.align(Alignment.Center).size(60.dp))
+                    Icon(Icons.Default.PlayArrow, "paly", tint = Color.White, modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(60.dp))
                 }
                 //좋아요등 게시물 아래부분
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Icon(
@@ -492,7 +495,9 @@ fun ProfileScreen(posts : List<PostData>){
             verticalAlignment = Alignment.CenterVertically
         ){
             item{
-                Column(horizontalAlignment = Alignment.CenterHorizontally){
+                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.animateContentSize()
+                    ){
                     Icon(Icons.Default.Person, "profile",tint=Color.Gray,
                         modifier = Modifier.size(80.dp)
                     )
@@ -500,6 +505,7 @@ fun ProfileScreen(posts : List<PostData>){
                         TextField(
                             value = newName,
                             onValueChange = {newName = it },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp),
                             label = {Text("입력")},
                             trailingIcon = {
                                 IconButton(onClick = {
@@ -519,7 +525,7 @@ fun ProfileScreen(posts : List<PostData>){
                                 containerColor = PointColor
                             )
                         ){
-                            Text("이름 변경", color = Color.White,fontSize=12.sp)
+                            Text("이름 변경", color = Color.White,fontSize=14.sp)
                         }
                     }
                 }
