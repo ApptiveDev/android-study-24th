@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.*
 import com.example.android_study.ui.theme.AndroidstudyTheme
 
 data class PostData(
@@ -81,33 +82,55 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    var selectedTab by remember { mutableStateOf(0) }
+    val navController = rememberNavController()
+    val currentRoute =
+        navController.currentBackStackEntryAsState().value?.destination?.route
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    selected = currentRoute == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo("home")
+                            launchSingleTop = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Home, contentDescription = "피드") },
                     label = { Text("피드") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    selected = currentRoute == "search",
+                    onClick = {
+                        navController.navigate("search") {
+                            popUpTo("home")
+                            launchSingleTop = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Search, contentDescription = "검색") },
                     label = { Text("검색") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    selected = currentRoute == "notifications",
+                    onClick = {
+                        navController.navigate("notifications") {
+                            popUpTo("home")
+                            launchSingleTop = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Notifications, contentDescription = "알림") },
                     label = { Text("알림") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 },
+                    selected = currentRoute == "profile",
+                    onClick = {
+                        navController.navigate("profile") {
+                            popUpTo("home")
+                            launchSingleTop = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Person, contentDescription = "프로필") },
                     label = { Text("프로필") }
                 )
@@ -119,11 +142,14 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (selectedTab) {
-                0 -> HomeScreen()
-                1 -> SearchScreen()
-                2 -> NotiScreen()
-                3 -> ProfileScreen()
+            NavHost(
+                navController = navController,
+                startDestination = "home"
+            ) {
+                composable("home") { HomeScreen() }
+                composable("search") { SearchScreen() }
+                composable("notifications") { NotiScreen() }
+                composable("profile") { ProfileScreen() }
             }
         }
     }
