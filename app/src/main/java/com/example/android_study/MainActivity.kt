@@ -67,7 +67,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.android_study.ui.theme.AndroidstudyTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,9 +97,85 @@ data class Post(
     val subImages: List<Int>
 )
 
+object DummyRepository {
+    val posts = listOf(
+        Post(
+            1,
+            "player1",
+            "bed",
+            R.drawable.bed,
+            listOf(
+                R.drawable.player1,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            2,
+            "player2",
+            "clover",
+            R.drawable.clover,
+            listOf(
+                R.drawable.player2,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            3,
+            "player3",
+            "flower",
+            R.drawable.flower,
+            listOf(
+                R.drawable.player3,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        ),
+        Post(
+            4,
+            "player4",
+            "sea",
+            R.drawable.sea,
+            listOf(
+                R.drawable.player4,
+                R.drawable.sub1,
+                R.drawable.sub2,
+                R.drawable.sub3,
+                R.drawable.sub4
+            )
+        )
+    )
+    val myData = Post(
+        id = 0, "me", "home", R.drawable.my,
+        listOf(
+            R.drawable.my,
+            R.drawable.rilakkuma,
+            R.drawable.cat,
+            R.drawable.nail,
+            R.drawable.withcat,
+            R.drawable.earphone
+        )
+    )
+
+    fun getPostById(id: Int): Post? {
+        if (id == 0) return myData
+        return posts.find { it.id == id }
+    }
+}
+
 @Composable
 fun MainScreen() {
-    var selectedTab by remember { mutableStateOf(0) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
 
     val naviColor = NavigationBarItemDefaults.colors(
         selectedIconColor = Color.White,
@@ -102,26 +187,50 @@ fun MainScreen() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar (
+            NavigationBar(
                 containerColor = Color.Black
             ) {
                 NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    selected = currentRoute == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Home") },
                     colors = naviColor
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    selected = currentRoute == "popular",
+                    onClick = {
+                        navController.navigate("popular") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
                     label = { Text("Friend") },
                     colors = naviColor
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    selected = currentRoute == "my",
+                    onClick = {
+                        navController.navigate("my") {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     label = { Text("My") },
                     colors = naviColor
@@ -129,180 +238,135 @@ fun MainScreen() {
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
 
         ) {
-            when (selectedTab) {
-                0 -> HomeScreen(onNavigateToPopular = { selectedTab = 1 })
-                1 -> Popular()
-                2 -> My()
+            composable("home") { HomeScreen(navController) }
+            composable("popular") { Popular(navController) }
+            composable("my") { My(navController) }
+            composable(
+                route = "detail/{postId}",
+                arguments = listOf(navArgument("postId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getInt("postId") ?: return@composable
+                val post = DummyRepository.getPostById(postId)
+
+                if (post != null) {
+                    DetailScreen(
+                        post = post,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(onNavigateToPopular: () -> Unit) {
-    val dummy = listOf(
-        Post(
-            id = 1,
-            userName = "player1",
-            title = "bed",
-            mainImage = R.drawable.bed,
-            subImages = listOf(
-                R.drawable.player1,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 2,
-            userName = "player2",
-            title = "clover",
-            mainImage = R.drawable.clover,
-            subImages = listOf(
-                R.drawable.player2,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 3,
-            userName = "player3",
-            title = "flower",
-            mainImage = R.drawable.flower,
-            subImages = listOf(
-                R.drawable.player3,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 4,
-            userName = "player4",
-            title = "sea",
-            mainImage = R.drawable.sea,
-            subImages = listOf(
-                R.drawable.player4,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        )
-    )
+fun HomeScreen(navController: NavController) {
 
-    var selectedPost by remember { mutableStateOf<Post?>(null) }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-    if (selectedPost == null) {
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black),
-            verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp)
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        verticalItemSpacing = 16.dp,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 100.dp)
 
-        ) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Box(
+    ) {
+        item(span = StaggeredGridItemSpan.FullLine) {
+            Box(
+                modifier = Modifier
+                    .requiredWidth(screenWidth)
+                    .height(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.apple),
+                    contentDescription = "Banner",
                     modifier = Modifier
-                        .requiredWidth(screenWidth)
-                        .height(300.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.apple),
-                        contentDescription = "Banner",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                compositingStrategy =
-                                    androidx.compose.ui.graphics.CompositingStrategy.Offscreen
-                            }
-                            .drawWithContent {
-                                val gradient = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black,
-                                        Color.Black.copy(alpha = 0.5f),
-                                        Color.Black.copy(alpha = 0.3f),
-                                        Color.Transparent
-                                    )
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            compositingStrategy =
+                                androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+                        }
+                        .drawWithContent {
+                            val gradient = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black,
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Transparent
                                 )
-                                drawContent()
-                                drawRect(
-                                    brush = gradient,
-                                    blendMode = BlendMode.DstIn
-                                )
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.requiredWidth(screenWidth)
-                    ) {
-                        Text(
-                            text = "Find your own taste",
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Column {
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Popular",
-                            color = Color.White
-                        )
-                        Text(
-                            text = "see Friend >",
-                            color = Color.White,
-                            modifier = Modifier.clickable {
-                                onNavigateToPopular()
-                            }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-
-            items(dummy) { post ->
-                PostItem(
-                    post = post,
-                    onClick = { selectedPost = post }
+                            )
+                            drawContent()
+                            drawRect(
+                                brush = gradient,
+                                blendMode = BlendMode.DstIn
+                            )
+                        },
+                    contentScale = ContentScale.Crop
                 )
 
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.requiredWidth(screenWidth)
+                ) {
+                    Text(
+                        text = "Find your own taste",
+                        color = Color.White
+                    )
+                }
             }
         }
-    } else {
-        DetailScreen(
-            post = selectedPost!!,
-            onBack = { selectedPost = null }
-        )
+
+        item(span = StaggeredGridItemSpan.FullLine) {
+            Column {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Popular",
+                        color = Color.White
+                    )
+                    Text(
+                        text = "see Friend >",
+                        color = Color.White,
+                        modifier = Modifier.clickable {
+                            navController.navigate("popular") {
+                                popUpTo("home")
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        items(DummyRepository.posts) { post ->
+            PostItem(
+                post = post,
+                onClick = { navController.navigate("detail/${post.id}") }
+            )
+
+        }
     }
 }
+
 
 @Composable
 fun PostItem(
@@ -353,88 +417,24 @@ fun PostItem(
 }
 
 @Composable
-fun Popular() {
-    val dummy = listOf(
-        Post(
-            id = 1,
-            userName = "player1",
-            title = "bed",
-            mainImage = R.drawable.bed,
-            subImages = listOf(
-                R.drawable.player1,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 2,
-            userName = "player2",
-            title = "clover",
-            mainImage = R.drawable.clover,
-            subImages = listOf(
-                R.drawable.player2,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 3,
-            userName = "player3",
-            title = "flower",
-            mainImage = R.drawable.flower,
-            subImages = listOf(
-                R.drawable.player3,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        ),
-        Post(
-            id = 4,
-            userName = "player4",
-            title = "sea",
-            mainImage = R.drawable.sea,
-            subImages = listOf(
-                R.drawable.player4,
-                R.drawable.sub1,
-                R.drawable.sub2,
-                R.drawable.sub3,
-                R.drawable.sub4
-            )
-        )
-    )
-    var selectedFriend by remember {  mutableStateOf<Post?>(null) }
+fun Popular(navController: NavController) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(horizontal = 16.dp),
+        verticalItemSpacing = 16.dp,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
+    ) {
 
-    if(selectedFriend == null){
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(horizontal = 16.dp),
-            verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-
-            items(dummy) { post ->
-                PostItem(
-                    post = post,
-                    onClick = { selectedFriend = post }
-                )
-            }
+        items(DummyRepository.posts) { post ->
+            PostItem(
+                post = post,
+                onClick = { navController.navigate("detail/${post.id}") }
+            )
         }
-    } else {
-        DetailScreen(
-            post = selectedFriend!!,
-            onBack = { selectedFriend = null }
-        )
-
     }
 }
 
@@ -518,161 +518,137 @@ fun DetailScreen(
 }
 
 @Composable
-fun My() {
-    val myData = Post(
-        id = 0,
-        userName = "me",
-        title = "home",
-        mainImage = R.drawable.my,
-        subImages = listOf(
-            R.drawable.my,
-            R.drawable.rilakkuma,
-            R.drawable.cat,
-            R.drawable.nail,
-            R.drawable.withcat,
-            R.drawable.earphone
+fun My(navController: NavController) {
+    val myData = DummyRepository.myData
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
 
-        )
-    )
-
-    var showDetail by remember { mutableStateOf(false) }
-    if (showDetail ==  false) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
-
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.my),
-                        contentDescription = "My",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                compositingStrategy =
-                                    androidx.compose.ui.graphics.CompositingStrategy.Offscreen
-                            }
-                            .drawWithContent {
-                                val gradient = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black,
-                                        Color.Black.copy(alpha = 0.5f),
-                                        Color.Black.copy(alpha = 0.3f),
-                                        Color.Transparent
-                                    )
-                                )
-                                drawContent()
-                                drawRect(
-                                    brush = gradient,
-                                    blendMode = BlendMode.DstIn
-                                )
-                            },
-                        contentScale = ContentScale.Crop
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "My Archive",
-                            color = Color.White
-                        )
-                    }
-
-                }
-            }
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-
-                ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "내 정보",
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 2.dp),
-                        color = Color.DarkGray,
-                        thickness = 2.dp
-                    )
-                    Text(
-                        text = "설정",
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 2.dp),
-                        color = Color.DarkGray,
-                        thickness = 2.dp
-                    )
-                    Text(
-                        text = "미리보기  > ",
-                        color = Color.White,
-                        modifier = Modifier.clickable {
-                            showDetail = true
-                        }
-                            .padding(16.dp)
-                    )
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 2.dp),
-                        color = Color.DarkGray,
-                        thickness = 2.dp
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "M y   P h o t o",
-                            color = Color.Gray
-                        )
-                        Text(
-                            text = "수정하기 >",
-                            color = Color.Gray
-                        )
-
-
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                }
-            }
-            items(myData.subImages) { post ->
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Image(
-                    painter = painterResource(id = post),
-                    contentDescription = "My Photo",
+                    painter = painterResource(id = R.drawable.my),
+                    contentDescription = "My",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f),
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            compositingStrategy =
+                                androidx.compose.ui.graphics.CompositingStrategy.Offscreen
+                        }
+                        .drawWithContent {
+                            val gradient = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black,
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Transparent
+                                )
+                            )
+                            drawContent()
+                            drawRect(
+                                brush = gradient,
+                                blendMode = BlendMode.DstIn
+                            )
+                        },
                     contentScale = ContentScale.Crop
                 )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "My Archive",
+                        color = Color.White
+                    )
+                }
+
             }
         }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "내 정보",
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp)
+                )
+                Divider(
+                    modifier = Modifier.padding(horizontal = 2.dp),
+                    color = Color.DarkGray,
+                    thickness = 2.dp
+                )
+                Text(
+                    text = "설정",
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp)
+                )
+                Divider(
+                    modifier = Modifier.padding(horizontal = 2.dp),
+                    color = Color.DarkGray,
+                    thickness = 2.dp
+                )
+                Text(
+                    text = "미리보기  > ",
+                    color = Color.White,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("detail/${myData.id}")
+                        }
+                        .padding(16.dp)
+                )
+                Divider(
+                    modifier = Modifier.padding(horizontal = 2.dp),
+                    color = Color.DarkGray,
+                    thickness = 2.dp
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "M y   P h o t o",
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "수정하기 >",
+                        color = Color.Gray
+                    )
 
 
-    } else{
-        DetailScreen(
-            post = myData,
-            onBack = { showDetail = false}
-        )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+
+            }
+        }
+        items(myData.subImages) { post ->
+            Image(
+                painter = painterResource(id = post),
+                contentDescription = "My Photo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
