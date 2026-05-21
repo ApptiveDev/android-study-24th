@@ -7,7 +7,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -572,7 +579,12 @@ fun ProfileScreen() {
     var showDialog by remember { mutableStateOf(false) }
 
     //making profile editable
-    if (showDialog) {
+    //if (showDialog)
+    AnimatedVisibility(
+        visible = showDialog,
+        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }), // 밑에서 스르륵 올라옴
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+    ) {
         EditProfileDialog(
             initialName = currentName,
             initialId = currentId,
