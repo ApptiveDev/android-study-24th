@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -46,7 +48,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -203,7 +207,18 @@ fun FeedCard(post: PostData) {
     var commentText by remember { mutableStateOf("") }
     var savedComment by remember { mutableStateOf("") }
     var showShareDialog by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) }
     val likeCount = if (liked) post.likes + 1 else post.likes
+    val profileImageScale by animateFloatAsState(
+        targetValue = if (showProfileDialog) 1f else 0.8f,
+        animationSpec = tween(durationMillis = 250),
+        label = ""
+    )
+    val profileImageAlpha by animateFloatAsState(
+        targetValue = if (showProfileDialog) 1f else 0.3f,
+        animationSpec = tween(durationMillis = 250),
+        label = ""
+    )
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -222,6 +237,7 @@ fun FeedCard(post: PostData) {
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
+                    .clickable { showProfileDialog = true }
             )
             Spacer(modifier = Modifier.width(10.dp))
             Column {
@@ -375,6 +391,35 @@ fun FeedCard(post: PostData) {
             confirmButton = {
                 TextButton(onClick = { showShareDialog = false }) {
                     Text("확인")
+                }
+            }
+        )
+    }
+
+    if (showProfileDialog) {
+        AlertDialog(
+            onDismissRequest = { showProfileDialog = false },
+            title = { Text(post.userName) },
+            text = {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = post.profileImage),
+                        contentDescription = "확대된 프로필 이미지",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(240.dp)
+                            .scale(profileImageScale)
+                            .alpha(profileImageAlpha)
+                            .clip(CircleShape)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showProfileDialog = false }) {
+                    Text("닫기")
                 }
             }
         )
