@@ -3,6 +3,8 @@ package com.example.android_study
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -237,11 +239,40 @@ fun MainScreen() {
                 )
             }
         }
-    ) { innerPadding ->
+
+    ) {
+        innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .background(Color.Black),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(600)
+                )
+            }
+
 
         ) {
             composable("home") { HomeScreen(navController) }
@@ -360,7 +391,9 @@ fun HomeScreen(navController: NavController) {
         items(DummyRepository.posts) { post ->
             PostItem(
                 post = post,
-                onClick = { navController.navigate("detail/${post.id}") }
+                onClick = { navController.navigate("detail/${post.id}") {
+                    launchSingleTop = true
+                } }
             )
 
         }
@@ -432,7 +465,9 @@ fun Popular(navController: NavController) {
         items(DummyRepository.posts) { post ->
             PostItem(
                 post = post,
-                onClick = { navController.navigate("detail/${post.id}") }
+                onClick = { navController.navigate("detail/${post.id}"){
+                    launchSingleTop = true
+                } }
             )
         }
     }
@@ -608,7 +643,9 @@ fun My(navController: NavController) {
                     color = Color.White,
                     modifier = Modifier
                         .clickable {
-                            navController.navigate("detail/${myData.id}")
+                            navController.navigate("detail/${myData.id}"){
+                                launchSingleTop = true
+                            }
                         }
                         .padding(16.dp)
                 )
