@@ -69,6 +69,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.MaterialTheme
 
 class MainActivity : ComponentActivity() {
@@ -100,50 +105,80 @@ data class PostData(
 
 @Composable
 fun MainScreen() {
-    var selectedTab by remember {mutableStateOf(0)}
+    val navController = rememberNavController()
 
     Scaffold(
         bottomBar = {
-            NavigationBar{
+            NavigationBar {
+                //현재 화면의 route 상태
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = {selectedTab = 0},
-                    icon = {Icon(Icons.Default.Home, contentDescription = null)},
-                    label = {Text("홈")}
+                    selected = currentRoute == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            //중복 생성 방지
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Home, null) },
+                    label = { Text("홈") }
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = {selectedTab = 1},
-                    icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    selected = currentRoute == "search",
+                    onClick = {
+                        navController.navigate("search") {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Search, null) },
                     label = { Text("검색") }
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = {selectedTab = 2},
-                    icon = { Icon(Icons.Default.MailOutline, contentDescription = null) },
+                    selected = currentRoute == "message",
+                    onClick = {
+                        navController.navigate("message") {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(Icons.Default.MailOutline, null) },
                     label = { Text("메시지") }
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = {selectedTab = 3},
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    selected = currentRoute == "profile",
+                    onClick = {
+                        navController.navigate("profile") { // 데이터 없이 "profile" 주소로만 이동
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Person, null) },
                     label = { Text("마이") }
                 )
             }
         }
-    ) {
-        innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedTab) {
-                0 -> SnsFeedScreen()
-                1 -> SearchScreen()
-                2 -> MessageScreen()
-                3 -> ProfileScreen()
-            }
-
+    ) { innerPadding ->
+        //시작화면(home) 지정
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("home") { SnsFeedScreen() }
+            composable("search") { SearchScreen() }
+            composable("message") { MessageScreen() }
+            composable("profile") { ProfileScreen() }
         }
     }
 }
