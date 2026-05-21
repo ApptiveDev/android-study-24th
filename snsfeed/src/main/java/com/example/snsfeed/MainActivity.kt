@@ -1,6 +1,7 @@
 package com.example.snsfeed
 
 import android.R.drawable
+import android.app.AlertDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,9 +50,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,7 +64,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 //import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
@@ -76,7 +76,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.tv.material3.MaterialTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -568,14 +567,30 @@ data class ProfileData(
 @Composable
 fun ProfileScreen() {
     //Text(text = "Profile Screen")
-    val AccName = "Hello Kitty"
-    val AccId = "hello_kitty"
+    var currentName by remember { mutableStateOf("Hello kitty") }
+    var currentId by remember { mutableStateOf("hello_kitty") }
+    var showDialog by remember { mutableStateOf(false) }
+
+    //making profile editable
+    if (showDialog) {
+        EditProfileDialog(
+            initialName = currentName,
+            initialId = currentId,
+            onDismiss = { showDialog = false },
+            onConfirm = { newName, newId ->
+                currentName = newName
+                currentId = newId
+                showDialog = false
+            }
+        )
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize()
     ) {
-        item {ProfileTopBar(accId = AccId)}
-        item {ProfileInfo(AccName = AccName)}
-        item {ProfileActionButtons()}
+        item {ProfileTopBar(accId = currentId)}
+        item {ProfileInfo(AccName = currentName)}
+        //edit pop up 뜨게 함
+        item {ProfileActionButtons(onEditClick = {showDialog = true})}
         item {ProfileTapBar()}
     }
 }
@@ -594,6 +609,7 @@ fun ProfileTopBar(accId: String) {
             text = accId,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.width(130.dp))
         Icon(imageVector = Icons.Default.Menu, contentDescription = null, modifier = Modifier.size(28.dp))
@@ -671,7 +687,7 @@ fun ProfileStats(count: String, label: String) {
 }
 
 @Composable
-fun ProfileActionButtons() {
+fun ProfileActionButtons(onEditClick: () -> Unit) {
     //Text(text = "Profile action buttons")
     Row(
         modifier = Modifier
@@ -681,8 +697,8 @@ fun ProfileActionButtons() {
     ) {
         //edit profile button
         Button(
-            onClick = { },
-            enabled = false,
+            onClick = onEditClick, //connected to EditProfileDialog
+            enabled = true,
             modifier = Modifier.weight(1f).height(36.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFEFEF))
@@ -693,7 +709,7 @@ fun ProfileActionButtons() {
         //share profile button
         Button(
             onClick = { },
-            enabled = false,
+            enabled = true,
             modifier = Modifier.weight(1f).height(36.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFEFEF))
@@ -704,7 +720,7 @@ fun ProfileActionButtons() {
         //follower suggestion button
         IconButton(
             onClick = { },
-            enabled = false,
+            enabled = true,
             modifier = Modifier.size(36.dp).background(Color(0xFFEFEFEF), RoundedCornerShape(8.dp))
         ) {
             Icon(imageVector = Icons.Default.Person, contentDescription = null, modifier = Modifier.size(20.dp))
@@ -740,6 +756,45 @@ fun ProfileTapBar() {
             )
         }
     }
+}
+
+@Composable
+fun EditProfileDialog(
+    initialName: String,
+    initialId: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
+    var tempName by remember { mutableStateOf(initialName) }
+    var tempId by remember { mutableStateOf(initialId) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextField(
+                    value = tempName,
+                    onValueChange = { tempName = it },
+            label = { Text("name") }
+                )
+                TextField(
+                    value = tempId,
+                    onValueChange = { tempId = it },
+                    label = { Text("id") }
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(tempName, tempId) }) {
+                Text("save")
+            }
+        },
+        dismissButton= {
+            TextButton(onClick = onDismiss) {
+                Text("cancel")
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true)
