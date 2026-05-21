@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "android-study"
 include(":app")
- 
+include(":snsfeed")
+include(":week3")
