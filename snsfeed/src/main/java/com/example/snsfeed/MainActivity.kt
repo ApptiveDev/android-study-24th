@@ -189,6 +189,20 @@ fun MainScreen() {
                     towards = AnimatedContentTransitionScope.SlideDirection.Left,
                     animationSpec = tween(durationMillis = 300)
                 )
+            },
+            //뒤로 가기 누를 때 이전 화면이 왼쪽에서 오른쪽으로 들어오기
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(durationMillis = 300)
+                )
+            },
+            //뒤로 가기 누를 때 현재 화면이 오른쪽으로 사라지기)
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(durationMillis = 300)
+                )
             }
 
         ) {
