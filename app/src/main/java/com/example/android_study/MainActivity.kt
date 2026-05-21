@@ -41,6 +41,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 
 // ───────── 데이터 모델 정의 ─────────
 data class PostData(
@@ -57,7 +60,9 @@ data class PostData(
 data class MemberData(
     val name: String,
     val role: String,
-    val profileUrl: String
+    val profileUrl: String,
+    val bio: String,
+    val isFollowed: Boolean = false
 )
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -184,20 +189,26 @@ fun PostCard(post: PostData, onLikeToggle: () -> Unit) { // [수정] 내부 reme
 }
 
 // ───────── 검색 화면 ─────────
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun SearchScreen() {
     var keyword by remember { mutableStateOf("") }
 
-    val members = listOf(
-        MemberData("여채언", "멘토", "https://picsum.photos/seed/101/200/200"),
-        MemberData("강준이", "멘토", "https://picsum.photos/seed/202/200/200"),
-        MemberData("엘간두르", "스터디원", "https://picsum.photos/seed/303/200/200"),
-        MemberData("신예나", "스터디원", "https://picsum.photos/seed/404/200/200"),
-        MemberData("안진형", "스터디원", "https://picsum.photos/seed/505/200/200"),
-        MemberData("정우영", "스터디원", "https://picsum.photos/seed/606/200/200"),
-        MemberData("인민에이", "스터디원", "https://picsum.photos/seed/707/200/200")
-    )
-
+    var members by remember {
+        mutableStateOf(
+            listOf(
+                MemberData("여채언", "멘토", "https://picsum.photos/seed/101/200/200", "안드로이드 컴포즈 장인입니다."),
+                MemberData("강준이", "멘토", "https://picsum.photos/seed/202/200/200", "안드로이드 컴포즈 장인입니다."),
+                MemberData("엘간두르", "스터디원", "https://picsum.photos/seed/303/200/200", "..."),
+                MemberData("신예나", "스터디원", "https://picsum.photos/seed/404/200/200", "..."),
+                MemberData("안진형", "스터디원", "https://picsum.photos/seed/505/200/200", "..."),
+                MemberData("정우영", "스터디원", "https://picsum.photos/seed/606/200/200", "..."),
+                MemberData("인민에이", "스터디원", "https://picsum.photos/seed/707/200/200", "...")
+            )
+        )
+    }
     val filtered = members.filter { it.name.contains(keyword.trim(), ignoreCase = true) }
 
     Column(
@@ -228,32 +239,63 @@ fun SearchScreen() {
             )
         )
 
-        if (keyword.isEmpty()) {
-            Text(
-                text = "스터디원 ${members.size}명",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-            )
-            LazyColumn {
-                items(members) { member ->
-                    MemberCard(member)
+        AnimatedContent(
+            targetState = keyword,
+            label = "SearchStateAnimation",
+            modifier = Modifier.fillMaxSize()
+        ) { targetKeyword ->
+            when {
+                // 상태 1: 검색어가 비어있을 때 (전체 목록)
+                targetKeyword.isEmpty() -> {
+                    Column {
+                        Text(
+                            text = "전체 스터디원 ${members.size}명",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                        )
+                        LazyColumn {
+                            items(members) { member ->
+                                MemberCard(
+                                    member = member,
+                                    onFollowToggle = {
+                                        members = members.map {
+                                            if (it.name == member.name) it.copy(isFollowed = !it.isFollowed) else it
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-        } else if (filtered.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("\"$keyword\" 검색 결과가 없어요", color = Color.Gray, fontSize = 14.sp)
-            }
-        } else {
-            Text(
-                text = "검색 결과 ${filtered.size}명",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-            )
-            LazyColumn {
-                items(filtered) { member ->
-                    MemberCard(member)
+                // 상태 2: 검색 결과가 존재하지 않을 때 (Empty View)
+                filtered.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("\"$targetKeyword\" 검색 결과가 없어요", color = Color.Gray, fontSize = 14.sp)
+                    }
+                }
+                // 상태 3: 검색 매칭 성공 시
+                else -> {
+                    Column {
+                        Text(
+                            text = "검색 결과 ${filtered.size}명",
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                        )
+                        LazyColumn {
+                            items(filtered) { member ->
+                                MemberCard(
+                                    member = member,
+                                    onFollowToggle = {
+                                        members = members.map {
+                                            if (it.name == member.name) it.copy(isFollowed = !it.isFollowed) else it
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -261,40 +303,76 @@ fun SearchScreen() {
 }
 
 @Composable
-fun MemberCard(member: MemberData) {
+fun MemberCard(member: MemberData, onFollowToggle: () -> Unit) {
+    // 카드가 확장되었는지 여부를 관리하는 로컬 상태
+    var isExpanded by remember { mutableStateOf(false) }
+
+    // 팔로우 상태에 따라 배경색과 텍스트 색상이 스무스하게 변화함
+    val buttonBgColor by animateColorAsState(
+        targetValue = if (member.isFollowed) Color(0xFFEEEEEE) else Color(0xFF2196F3),
+        label = "ButtonBgColor"
+    )
+    val buttonTextColor by animateColorAsState(
+        targetValue = if (member.isFollowed) Color.DarkGray else Color.White,
+        label = "ButtonTextColor"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { isExpanded = !isExpanded } // 카드를 누르면 확장 토글 발생
+
+            .animateContentSize(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = member.profileUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(member.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(member.role, fontSize = 13.sp, color = Color.Gray)
-            }
-            OutlinedButton(
-                onClick = {},
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("팔로우", fontSize = 12.sp, color = Color.Black)
+                AsyncImage(
+                    model = member.profileUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(member.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(member.role, fontSize = 13.sp, color = Color.Gray)
+                }
+
+                Button(
+                    onClick = { onFollowToggle() },
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = buttonBgColor)
+                ) {
+                    Text(
+                        text = if (member.isFollowed) "팔로잉" else "팔로우",
+                        fontSize = 12.sp,
+                        color = buttonTextColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = Color(0xFFF0F0F0))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = member.bio,
+                    fontSize = 13.sp,
+                    color = Color.DarkGray,
+                    lineHeight = 18.sp,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
             }
         }
     }
