@@ -143,6 +143,7 @@ fun MainScreen() {
                 2 -> MessageScreen()
                 3 -> ProfileScreen()
             }
+
         }
     }
 }
