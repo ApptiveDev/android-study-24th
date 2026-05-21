@@ -582,8 +582,16 @@ fun ProfileScreen() {
     //if (showDialog)
     AnimatedVisibility(
         visible = showDialog,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }), // 밑에서 스르륵 올라옴
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+        enter = fadeIn(animationSpec = tween(durationMillis = 2000)) +
+                slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = tween(durationMillis = 2000) // 0.8초 동안 슬라이드
+                ),
+        exit = fadeOut(animationSpec = tween(durationMillis = 500)) +
+                slideOutVertically(
+                    targetOffsetY = { it / 2 },
+                    animationSpec = tween(durationMillis = 500)
+                )
     ) {
         EditProfileDialog(
             initialName = currentName,
