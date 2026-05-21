@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -169,11 +171,26 @@ fun MainScreen() {
             }
         }
     ) { innerPadding ->
-        //시작화면(home) 지정
+        //시작 화면(home) 지정
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            //Animation: 새 화면 들어올 때
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(durationMillis = 300) //0.3s tween
+                )
+            },
+            //현재 화면 사라질 때
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(durationMillis = 300)
+                )
+            }
+
         ) {
             composable("home") { SnsFeedScreen() }
             composable("search") { SearchScreen() }
